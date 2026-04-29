@@ -1,3 +1,9 @@
+// --- Supabase Configuration ---
+const SUPABASE_URL = 'https://gqmqegrmydtqxfnzdpty.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_UHVHuIwKWVGuMGgqD-ti6A_mFMAxXr9';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const STORAGE_ID = '00000000-0000-0000-0000-000000000000';
+
 function bootstrap() {
     if (window.financeOS_booted) return;
     window.financeOS_booted = true;
@@ -8,11 +14,6 @@ function bootstrap() {
     // Removed diagnostic that could cause issues on some mobile browsers
 
 
-    // --- Supabase Configuration ---
-    const SUPABASE_URL = 'https://gqmqegrmydtqxfnzdpty.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_UHVHuIwKWVGuMGgqD-ti6A_mFMAxXr9';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const STORAGE_ID = '00000000-0000-0000-0000-000000000000';
 
     window.updateSyncDebug = function(msg) {
         console.log('[Sync] ' + msg);
