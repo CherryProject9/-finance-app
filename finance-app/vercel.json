@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "name": "finance-os",
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/v1", "destination": "/index_v1.html" }
+  ]
+}
