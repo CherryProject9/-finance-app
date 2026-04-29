@@ -1,7 +1,7 @@
 // --- Supabase Configuration ---
 const SUPABASE_URL = 'https://gqmqegrmydtqxfnzdpty.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_UHVHuIwKWVGuMGgqD-ti6A_mFMAxXr9';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const STORAGE_ID = '00000000-0000-0000-0000-000000000000';
 
 function bootstrap() {
@@ -726,7 +726,7 @@ async function saveData() {
 
     // 2. Sync to Supabase
     try {
-        const { error } = await supabase
+        const { error } = await dbClient
             .from('finance_storage')
             .upsert({ id: STORAGE_ID, state: data });
             
@@ -746,7 +746,7 @@ async function loadData() {
     try {
         if (window.updateSyncDebug) window.updateSyncDebug('Fetching from Supabase...');
         
-        const { data, error } = await supabase
+        const { data, error } = await dbClient
             .from('finance_storage')
             .select('state')
             .eq('id', STORAGE_ID)
