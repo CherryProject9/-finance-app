@@ -155,12 +155,12 @@
         })();
     </script>
 </head>
-<body data-active-view="dashboard" style="display: none;">
+<body data-active-view="dashboard">
     <!-- Auth Overlay -->
-    <div id="auth-overlay" style="display: none;">
+    <div id="auth-overlay" style="display: flex; background: #000; position: fixed; inset: 0; z-index: 9999999; align-items: center; justify-content: center;">
         <div class="auth-card">
             <div class="auth-logo">FinanceOS</div>
-            <div class="auth-subtitle">Secure personal wealth management (v2)</div>
+            <div class="auth-subtitle">Secure personal wealth management</div>
             
             <div id="auth-error"></div>
 
@@ -185,6 +185,11 @@
             </div>
         </div>
     </div>
+    <style>
+        .app-container { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        body.authenticated .app-container { opacity: 1; pointer-events: auto; }
+        body.authenticated #auth-overlay { display: none !important; }
+    </style>
     <div id="toast-container"></div>
     
     <!-- v101: Fallback now has pointer-events: none to ensure it NEVER blocks clicks -->

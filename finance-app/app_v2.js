@@ -23,16 +23,14 @@ function bootstrap() {
             currentUser = session.user;
             console.log('[Auth] Valid session found:', currentUser.email);
             
-            // Wait for data load before hiding overlay for a smoother transition
+            // Wait for data load before showing app
             const hasData = await loadData();
             refreshUI();
             
-            document.getElementById('auth-overlay').style.display = 'none';
-            document.body.style.display = 'block';
+            document.body.classList.add('authenticated');
         } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
             currentUser = null;
-            document.getElementById('auth-overlay').style.display = 'flex';
-            document.body.style.display = 'block';
+            document.body.classList.remove('authenticated');
             resetAppState();
         }
     });
