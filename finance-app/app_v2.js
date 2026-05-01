@@ -17,21 +17,22 @@ function bootstrap() {
 
     // --- Auth Listeners ---
     dbClient.auth.onAuthStateChange(async (event, session) => {
+        console.log('[Auth] Event:', event);
+        
         if (session) {
             currentUser = session.user;
-            console.log('[Auth] User logged in:', currentUser.email);
+            console.log('[Auth] Valid session found:', currentUser.email);
+            
+            // Wait for data load before hiding overlay for a smoother transition
+            const hasData = await loadData();
+            refreshUI();
+            
             document.getElementById('auth-overlay').style.display = 'none';
             document.body.style.display = 'block';
-            
-            // Check for initial load
-            await loadData();
-            refreshUI();
-        } else {
+        } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
             currentUser = null;
-            console.log('[Auth] User logged out');
             document.getElementById('auth-overlay').style.display = 'flex';
-            document.body.style.display = 'block'; // Keep body visible to show overlay
-            // Clear local states
+            document.body.style.display = 'block';
             resetAppState();
         }
     });
