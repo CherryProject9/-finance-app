@@ -4,6 +4,60 @@ const SUPABASE_KEY = 'sb_publishable_UHVHuIwKWVGuMGgqD-ti6A_mFMAxXr9';
 const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 
+// --- Auth Action Handlers ---
+window.handleSocialLogin = async function(provider) {
+    console.log('[Auth] Starting OAuth:', provider);
+    const { error } = await dbClient.auth.signInWithOAuth({
+        provider: provider,
+        options: {
+            redirectTo: window.location.origin + window.location.pathname
+        }
+    });
+    if (error) {
+        console.error('[Auth] OAuth Error:', error);
+        showAuthError(error.message);
+    }
+};
+
+window.handleEmailAuth = async function(type) {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    
+    if (!email || !password) {
+        showAuthError("Please enter both email and password.");
+        return;
+    }
+
+    let result;
+    if (type === 'signup') {
+        result = await dbClient.auth.signUp({ email, password });
+    } else {
+        result = await dbClient.auth.signInWithPassword({ email, password });
+    }
+
+    if (result.error) {
+        showAuthError(result.error.message);
+    } else if (type === 'signup') {
+        alert("Check your email for a confirmation link!");
+    }
+};
+
+window.handleLogout = async function() {
+    console.log('[Auth] Logging out...');
+    await dbClient.auth.signOut();
+    location.reload(); // Force reload to clear all states
+};
+
+function showAuthError(msg) {
+    const err = document.getElementById('auth-error');
+    if (err) {
+        err.innerText = msg;
+        err.style.display = 'block';
+    } else {
+        alert(msg);
+    }
+}
+
 function bootstrap() {
     if (window.financeOS_booted) return;
     window.financeOS_booted = true;
