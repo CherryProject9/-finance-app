@@ -2,7 +2,7 @@
 const SUPABASE_URL = 'https://gqmqegrmydtqxfnzdpty.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_UHVHuIwKWVGuMGgqD-ti6A_mFMAxXr9';
 const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const STORAGE_ID = '00000000-0000-0000-0000-000000000000';
+let currentUser = null;
 
 function bootstrap() {
     if (window.financeOS_booted) return;
@@ -14,6 +14,27 @@ function bootstrap() {
     // Removed diagnostic that could cause issues on some mobile browsers
 
 
+
+    // --- Auth Listeners ---
+    dbClient.auth.onAuthStateChange(async (event, session) => {
+        if (session) {
+            currentUser = session.user;
+            console.log('[Auth] User logged in:', currentUser.email);
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.body.style.display = 'block';
+            
+            // Check for initial load
+            await loadData();
+            refreshUI();
+        } else {
+            currentUser = null;
+            console.log('[Auth] User logged out');
+            document.getElementById('auth-overlay').style.display = 'flex';
+            document.body.style.display = 'block'; // Keep body visible to show overlay
+            // Clear local states
+            resetAppState();
+        }
+    });
 
     window.updateSyncDebug = function(msg) {
         console.log('[Sync] ' + msg);
@@ -713,6 +734,8 @@ const API_BASE = (window.location.protocol === 'file:') ? 'http://localhost:8080
 const API_URL = '/api/data';
 
 async function saveData() {
+    if (!currentUser) return false;
+    
     const data = {
         monthlyBudgetsState: monthlyBudgetsState,
         transactionsState: transactionsState,
@@ -721,77 +744,61 @@ async function saveData() {
         lastUpdated: Date.now()
     };
 
-    // 1. Save to LocalStorage immediately (instant feedback)
-    localStorage.setItem('financeOS_master_data', JSON.stringify(data));
+    // 1. Save to LocalStorage
+    localStorage.setItem('financeOS_master_data_' + currentUser.id, JSON.stringify(data));
 
     // 2. Sync to Supabase
     try {
         const { error } = await dbClient
             .from('finance_storage')
-            .upsert({ id: STORAGE_ID, state: data });
+            .upsert({ 
+                user_id: currentUser.id, 
+                state: data 
+            }, { onConflict: 'user_id' });
             
         if (error) throw error;
         return true;
     } catch (e) {
         console.warn("[Supabase] Save failed:", e);
-        if (window.updateSyncDebug) window.updateSyncDebug('Cloud save failed');
         return false;
     }
 }
 
 async function loadData() {
+    if (!currentUser) return false;
+    
     let cloudData = null;
     
-    // 1. Try to fetch from Supabase
+    // 1. Try to fetch from Supabase using user_id
     try {
-        if (window.updateSyncDebug) window.updateSyncDebug('Fetching from Supabase...');
-        
         const { data, error } = await dbClient
             .from('finance_storage')
             .select('state')
-            .eq('id', STORAGE_ID)
-            .single();
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
             
-        if (error) {
-            if (error.code === 'PGRST116') {
-                console.log("[Supabase] No existing data found. Initializing...");
-                return true; 
-            }
-            throw error;
-        }
+        if (error) throw error;
         
-        cloudData = data.state;
-        if (window.updateSyncDebug) window.updateSyncDebug('Cloud data loaded!');
+        if (data) {
+            cloudData = data.state;
+        } else {
+            // Check for migration if no cloud data exists
+            await handleFirstLoginMigration();
+        }
     } catch (e) {
-        console.warn('[Supabase] Load failed. Fallback to local.', e);
-        if (window.updateSyncDebug) window.updateSyncDebug('Cloud load error');
+        console.warn('[Supabase] Load failed.', e);
     }
 
-    // 2. Load from localStorage as fallback
+    // 2. Load from localStorage
     let localData = null;
     try {
-        const localDataRaw = localStorage.getItem('financeOS_master_data');
+        const localDataRaw = localStorage.getItem('financeOS_master_data_' + currentUser.id);
         localData = localDataRaw ? JSON.parse(localDataRaw) : null;
-    } catch (e) {
-        console.error('[FinanceOS] Failed to parse local data', e);
-    }
+    } catch (e) {}
 
     // 3. Merge Logic
     let finalData = cloudData || localData;
     
-    if (cloudData && localData) {
-        const cloudTs = cloudData.lastUpdated || 0;
-        const localTs = localData.lastUpdated || 0;
-        
-        if (localTs > cloudTs) {
-            console.log("[FinanceOS] LocalStorage is newer. Using local.");
-            finalData = localData;
-        } else {
-            console.log("[FinanceOS] Cloud data is newer or equal.");
-            finalData = cloudData;
-        }
-    }
-
     if (finalData) {
         if (finalData.monthlyBudgetsState) monthlyBudgetsState = finalData.monthlyBudgetsState;
         if (finalData.transactionsState) transactionsState = finalData.transactionsState;
@@ -802,6 +809,85 @@ async function loadData() {
     
     return false;
 }
+
+async function handleFirstLoginMigration() {
+    console.log('[Auth] Checking for legacy data migration...');
+    const legacyDataRaw = localStorage.getItem('financeOS_master_data');
+    if (legacyDataRaw) {
+        try {
+            const legacyData = JSON.parse(legacyDataRaw);
+            console.log('[Auth] Migrating legacy data to new user account...');
+            
+            // Set current state to legacy data
+            if (legacyData.monthlyBudgetsState) monthlyBudgetsState = legacyData.monthlyBudgetsState;
+            if (legacyData.transactionsState) transactionsState = legacyData.transactionsState;
+            if (legacyData.customCategoryRules) customCategoryRules = legacyData.customCategoryRules;
+            if (legacyData.investmentsState) investmentsState = legacyData.investmentsState;
+            
+            // Save to cloud immediately
+            const success = await saveData();
+            if (success) {
+                console.log('[Auth] Migration successful! Removing legacy local data.');
+                localStorage.removeItem('financeOS_master_data');
+            }
+        } catch (e) {
+            console.error('[Auth] Migration failed:', e);
+        }
+    }
+}
+
+function resetAppState() {
+    monthlyBudgetsState = {};
+    transactionsState = [];
+    customCategoryRules = [];
+    investmentsState = [];
+    refreshUI();
+}
+
+// --- Auth Action Handlers ---
+window.handleSocialLogin = async function(provider) {
+    const { error } = await dbClient.auth.signInWithOAuth({
+        provider: provider,
+        options: {
+            redirectTo: window.location.origin + window.location.pathname
+        }
+    });
+    if (error) showAuthError(error.message);
+};
+
+window.handleEmailAuth = async function(type) {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    const errorDiv = document.getElementById('auth-error');
+    
+    if (!email || !password) {
+        showAuthError("Please enter both email and password.");
+        return;
+    }
+
+    let result;
+    if (type === 'signup') {
+        result = await dbClient.auth.signUp({ email, password });
+    } else {
+        result = await dbClient.auth.signInWithPassword({ email, password });
+    }
+
+    if (result.error) {
+        showAuthError(result.error.message);
+    } else if (type === 'signup') {
+        alert("Check your email for a confirmation link!");
+    }
+};
+
+function showAuthError(msg) {
+    const err = document.getElementById('auth-error');
+    err.innerText = msg;
+    err.style.display = 'block';
+}
+
+window.handleLogout = async function() {
+    await dbClient.auth.signOut();
+};
 
 async function migrateLegacyData() {
     try {
