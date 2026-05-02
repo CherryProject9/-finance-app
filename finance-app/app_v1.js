@@ -30,7 +30,8 @@ function bootstrap() {
         const { data, error } = await dbClient.auth.signInWithOAuth({
             provider: provider,
             options: {
-                redirectTo: window.location.href
+                // v131: Strip the hash to prevent token recursion
+                redirectTo: window.location.origin + window.location.pathname
             }
         });
         
