@@ -37,8 +37,8 @@ function bootstrap() {
         if (error) {
             alert('[Auth Error] ' + error.message);
         } else if (data && data.url) {
-            alert('[Debug] Redirecting to: ' + provider);
-            window.location.href = data.url; // Force manual redirect
+            alert('[Debug] Redirecting to: ' + data.url);
+            window.location.replace(data.url); // Use replace for better compatibility
         } else {
             alert('[Debug] No URL returned from Supabase');
         }
