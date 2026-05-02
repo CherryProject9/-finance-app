@@ -26,22 +26,18 @@ function bootstrap() {
 
     // --- Auth Action Handlers ---
     window.handleSocialLogin = async function(provider) {
-        alert('[Debug] Clicking ' + provider + ' login...');
+        console.log('[Auth] Starting OAuth:', provider);
         const { data, error } = await dbClient.auth.signInWithOAuth({
             provider: provider,
             options: {
-                // v131: Strip the hash to prevent token recursion
                 redirectTo: window.location.origin + window.location.pathname
             }
         });
         
         if (error) {
-            alert('[Auth Error] ' + error.message);
+            console.error('[Auth Error]', error.message);
         } else if (data && data.url) {
-            alert('[Debug] Redirecting to: ' + data.url);
-            window.location.replace(data.url); // Use replace for better compatibility
-        } else {
-            alert('[Debug] No URL returned from Supabase');
+            window.location.replace(data.url);
         }
     };
 
@@ -53,12 +49,13 @@ function bootstrap() {
     window.handleEmailAuth = async function(type) {
         const email = document.getElementById('auth-email').value;
         const password = document.getElementById('auth-password').value;
-        if (!email || !password) return alert("Enter email and password.");
+        if (!email || !password) return;
+        
         const result = (type === 'signup') 
             ? await dbClient.auth.signUp({ email, password })
             : await dbClient.auth.signInWithPassword({ email, password });
-        if (result.error) alert(result.error.message);
-        else if (type === 'signup') alert("Check email!");
+        
+        if (result.error) console.error(result.error.message);
     };
     console.log('[FinanceOS] Origin:', window.location.origin);
     console.log('[FinanceOS] API URL:', typeof API_URL !== 'undefined' ? API_URL : 'pending');
