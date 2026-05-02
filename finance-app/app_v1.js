@@ -6,20 +6,23 @@ let currentUser = null;
 
 // --- Auth Action Handlers ---
 window.handleSocialLogin = async function(provider) {
+    alert('[Debug] Clicking ' + provider + ' login...');
     console.log('[Auth] Starting OAuth:', provider);
     const { error } = await dbClient.auth.signInWithOAuth({
         provider: provider,
         options: {
+            // Let Supabase use the default Site URL to avoid path confusion
             redirectTo: window.location.origin + window.location.pathname
         }
     });
     if (error) {
-        console.error('[Auth] OAuth Error:', error);
+        alert('[Auth Error] ' + error.message);
         showAuthError(error.message);
     }
 };
 
 window.handleEmailAuth = async function(type) {
+    alert('[Debug] Email Auth: ' + type);
     const email = document.getElementById('auth-email').value;
     const password = document.getElementById('auth-password').value;
     
