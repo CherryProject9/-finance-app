@@ -27,8 +27,8 @@ function bootstrap() {
     // --- Auth Action Handlers ---
     window.handleSocialLogin = async function(provider) {
         console.log('[Auth] Starting OAuth:', provider);
-        // v133: Use base origin to match Supabase 'Site URL' exactly
-        const returnUrl = window.location.origin; 
+        // v134: Use full path to avoid Vercel 404 on return
+        const returnUrl = window.location.origin + window.location.pathname; 
         
         try {
             const { data, error } = await dbClient.auth.signInWithOAuth({
