@@ -27,17 +27,25 @@ function bootstrap() {
     // --- Auth Action Handlers ---
     window.handleSocialLogin = async function(provider) {
         console.log('[Auth] Starting OAuth:', provider);
-        const { data, error } = await dbClient.auth.signInWithOAuth({
-            provider: provider,
-            options: {
-                redirectTo: window.location.origin + window.location.pathname
-            }
-        });
+        // v133: Use base origin to match Supabase 'Site URL' exactly
+        const returnUrl = window.location.origin; 
         
-        if (error) {
-            console.error('[Auth Error]', error.message);
-        } else if (data && data.url) {
-            window.location.replace(data.url);
+        try {
+            const { data, error } = await dbClient.auth.signInWithOAuth({
+                provider: provider,
+                options: {
+                    redirectTo: returnUrl
+                }
+            });
+            
+            if (error) throw error;
+            
+            if (data && data.url) {
+                console.log('[Auth] Forcing redirect to:', data.url);
+                window.location.href = data.url;
+            }
+        } catch (err) {
+            console.error('[Auth Error]', err.message);
         }
     };
 
