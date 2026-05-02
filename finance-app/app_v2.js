@@ -3455,3 +3455,8 @@ window.showCategoryDetail = function(categoryName) {
         });
     }
 };
+
+// --- Wake up the app! ---
+bootstrap();
+window.financeOS_script_loaded = true;
+console.log('[FinanceOS] Script execution complete.');
