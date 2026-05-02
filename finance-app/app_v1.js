@@ -22,32 +22,31 @@ function bootstrap() {
     }
 
     window.financeOS_booted = true;
-    console.log('[FinanceOS] Bootstrap v=130...');
+    console.log('[FinanceOS] Bootstrap v=135...');
 
-    // --- Auth Action Handlers ---
-    window.handleSocialLogin = async function(provider) {
-        console.log('[Auth] Starting OAuth:', provider);
-        // v134: Use full path to avoid Vercel 404 on return
-        const returnUrl = window.location.origin + window.location.pathname; 
-        
-        try {
-            const { data, error } = await dbClient.auth.signInWithOAuth({
-                provider: provider,
-                options: {
-                    redirectTo: returnUrl
+    // v135: Pre-load Direct Login Links to bypass browser blocks
+    const prepLinks = async () => {
+        const providers = ['google', 'kakao'];
+        for (const p of providers) {
+            try {
+                const { data } = await dbClient.auth.signInWithOAuth({
+                    provider: p,
+                    options: { 
+                        redirectTo: window.location.origin,
+                        skipBrowserRedirect: true 
+                    }
+                });
+                const link = document.getElementById(`btn-${p}-link`);
+                if (link && data && data.url) {
+                    link.href = data.url;
+                    console.log(`[Auth] Pre-loaded ${p} link.`);
                 }
-            });
-            
-            if (error) throw error;
-            
-            if (data && data.url) {
-                console.log('[Auth] Forcing redirect to:', data.url);
-                window.location.href = data.url;
+            } catch (e) {
+                console.warn(`[Auth] Failed to pre-load ${p} link`, e);
             }
-        } catch (err) {
-            console.error('[Auth Error]', err.message);
         }
     };
+    prepLinks();
 
     window.handleLogout = async function() {
         await dbClient.auth.signOut();
