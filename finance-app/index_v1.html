@@ -2,122 +2,94 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinanceOS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FinanceOS">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <script>
+        // Register Service Worker for PWA support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('[FinanceOS] PWA Service Worker Registered'))
+                    .catch(err => console.log('[FinanceOS] SW Registration Failed', err));
+            });
+        }
+    </script>
+    <script>
+        console.log('[FinanceOS] Bootstrap v=120...');
+        window.onerror = function(msg, url, line, col, error) {
+            var div = document.createElement('div');
+            div.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,0,0,0.9);color:white;padding:20px;z-index:999999;font-family:monospace;font-size:14px;overflow:auto;';
+            div.innerHTML = '<h1>Critical Error</h1>' +
+                            '<p><b>Message:</b> ' + msg + '</p>' +
+                            '<p><b>URL:</b> ' + url + '</p>' +
+                            '<p><b>Line:</b> ' + line + ', <b>Col:</b> ' + col + '</p>' +
+                            '<pre>' + (error && error.stack || '') + '</pre>' +
+                            '<button onclick="location.reload()" style="background:white;color:black;padding:10px;border:none;border-radius:5px;margin-top:20px;">Reload App</button>';
+            if (document.body) {
+                document.body.appendChild(div);
+            } else {
+                document.write(div.outerHTML);
+            }
+            return false;
+        };
+    </script>
+    <title>FinanceOS - Premium Personal Finance</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=block" rel="stylesheet">
+    <link rel="stylesheet" href="styles_v1.css">
     <style>
-        :root {
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-primary: #1a1a1a;
-            --text-secondary: #666666;
-            --accent-color: #4361ee;
-            --border-color: #e5e7eb;
-            --success-color: #10b981;
-            --danger-color: #ef4444;
-            --header-bg: rgba(255, 255, 255, 0.8);
-        }
-
-        [data-theme='dark'] {
-            --bg-color: #000000;
-            --card-bg: #111111;
-            --text-primary: #ffffff;
-            --text-secondary: #999999;
-            --accent-color: #4cc9f0;
-            --border-color: #222222;
-            --header-bg: rgba(0, 0, 0, 0.8);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-            min-height: 100vh;
-        }
-
-        /* Premium UI Components */
-        .glass-header {
-            position: sticky;
-            top: 0;
-            background: var(--header-bg);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            z-index: 1000;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            padding: 2rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            transition: transform 0.2s ease;
-        }
-
-        .card:hover { transform: translateY(-4px); }
-
-        /* Auth Premium UI */
+        /* --- Login UI Styles --- */
         #auth-overlay {
-            display: flex;
-            background: #000;
             position: fixed;
-            inset: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
             z-index: 9999999;
+            display: flex;
             align-items: center;
             justify-content: center;
+            font-family: 'Inter', sans-serif;
         }
-
         .auth-card {
-            background: var(--card-bg);
-            padding: 2.5rem;
+            background: #111;
+            padding: 40px;
             border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             width: 100%;
             max-width: 400px;
-            border: 1px solid var(--border-color);
             text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.05);
         }
-
         .auth-logo {
-            font-size: 2rem;
+            font-size: 32px;
             font-weight: 800;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--accent-color), #7209b7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #fff;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
         }
-
         .auth-subtitle {
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-            font-size: 0.9rem;
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 32px;
         }
-
         .auth-button {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border-radius: 12px;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            color: var(--text-primary);
+            border: none;
             font-weight: 600;
+            font-size: 15px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -127,63 +99,53 @@
             transition: all 0.2s ease;
             text-decoration: none;
         }
-
-        .btn-google:hover { background: #f1f1f1; border-color: #ddd; }
-        .btn-kakao { background: #fee500; color: #3c1e1e; border: none; }
-        .btn-kakao:hover { background: #fada00; }
-
+        .btn-google { background: #fff; color: #000; }
+        .btn-kakao { background: #FEE500; color: #3C1E1E; }
+        .btn-email { background: #222; color: #fff; border: 1px solid #333; }
+        .auth-button:hover { transform: translateY(-2px); opacity: 0.9; }
+        
         .auth-divider {
             height: 1px;
-            background: var(--border-color);
-            margin: 2rem 0;
+            background: #222;
+            margin: 24px 0;
             position: relative;
         }
-
         .auth-divider::after {
-            content: "OR";
+            content: 'OR';
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: var(--card-bg);
-            padding: 0 10px;
-            font-size: 0.7rem;
-            color: var(--text-secondary);
+            background: #111;
+            padding: 0 12px;
+            color: #444;
+            font-size: 10px;
+            font-weight: 700;
         }
-
         .auth-input {
             width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-color);
-            color: var(--text-primary);
+            padding: 12px 16px;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
             margin-bottom: 12px;
-            outline: none;
+            font-size: 14px;
         }
-
-        .btn-email {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-        }
-
         .auth-footer {
-            margin-top: 1.5rem;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
+            margin-top: 24px;
+            color: #666;
+            font-size: 12px;
         }
-
         .auth-link {
-            color: var(--accent-color);
+            color: #6366F1;
             cursor: pointer;
-            font-weight: 600;
+            text-decoration: underline;
         }
-
         #auth-error {
-            color: var(--danger-color);
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
+            color: #ef4444;
+            font-size: 12px;
+            margin-bottom: 12px;
             display: none;
         }
     </style>
@@ -198,62 +160,16 @@
 </head>
 <body data-active-view="dashboard">
     <!-- Auth Overlay -->
-    <div id="auth-overlay">
+    <div id="auth-overlay" style="display: flex; background: #000; position: fixed; inset: 0; z-index: 9999999; align-items: center; justify-content: center;">
         <div class="auth-card">
             <div class="auth-logo">FinanceOS</div>
             <div class="auth-subtitle">Secure personal wealth management</div>
             
             <div id="auth-error"></div>
 
-            <a href="https://gqmqegrmydtqxfnzdpty.supabase.co/auth/v1/authorize?provider=google&redirect_to=https%3A%2F%2Ffinance-app-blond-two.vercel.app%2Ffinance-app%2Findex_v1.html" class="auth-button btn-google" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px;">
+            <a id="btn-google-link" href="https://gqmqegrmydtqxfnzdpty.supabase.co/auth/v1/authorize?provider=google&redirect_to=https%3A%2F%2Ffinance-app-blond-two.vercel.app%2Ffinance-app%2Findex_v1.html" class="auth-button btn-google" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px;">
                 <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
                 Continue with Google
             </a>
-            <a href="https://gqmqegrmydtqxfnzdpty.supabase.co/auth/v1/authorize?provider=kakao&scopes=profile&redirect_to=https%3A%2F%2Ffinance-app-blond-two.vercel.app%2Ffinance-app%2Findex_v1.html" class="auth-button btn-kakao" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px;">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2.5C5.858 2.5 2.5 5.092 2.5 8.292c0 2.058 1.4 3.867 3.517 4.908l-.892 3.267c-.05.183.158.333.3.233l3.867-2.558C9.558 14.125 9.775 14.133 10 14.133c4.142 0 7.5-2.592 7.5-5.792S14.142 2.5 10 2.5z"/></svg>
-                Continue with Kakao
-            </a>
-            
-            <div class="auth-divider"></div>
-            
-            <div id="email-login-form">
-                <input type="email" id="auth-email" class="auth-input" placeholder="Email address">
-                <input type="password" id="auth-password" class="auth-input" placeholder="Password">
-                <button class="auth-button btn-email" onclick="window.handleEmailAuth('login')">Sign In</button>
-                <div class="auth-footer">
-                    Don't have an account? <span class="auth-link" onclick="window.handleEmailAuth('signup')">Sign Up</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <header class="glass-header">
-        <div style="font-size: 1.5rem; font-weight: 800;">FinanceOS</div>
-        <div style="display: flex; gap: 1rem; align-items: center;">
-            <button onclick="toggleTheme()" style="background: none; border: none; cursor: pointer; color: var(--text-primary);">🌓</button>
-            <div id="user-display" style="font-size: 0.9rem; font-weight: 500;"></div>
-            <button onclick="handleLogout()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); background: none; color: var(--text-primary); cursor: pointer;">Logout</button>
-        </div>
-    </header>
-
-    <main class="dashboard-grid">
-        <div class="card" style="grid-column: span 2;">
-            <h3 style="margin-bottom: 1.5rem;">Net Worth Overview</h3>
-            <div id="chart-container" style="height: 300px; width: 100%;"></div>
-        </div>
-        
-        <div class="card">
-            <h3>Quick Actions</h3>
-            <div style="display: grid; gap: 10px; margin-top: 1.5rem;">
-                <button onclick="alert('Coming Soon: Add Transaction')" class="auth-button btn-email">Add Transaction</button>
-                <button onclick="alert('Coming Soon: Add Asset')" class="auth-button" style="margin: 0;">Add Asset</button>
-            </div>
-        </div>
-    </main>
-
-    <!-- Supabase & App Logic -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="app_v1.js"></script>
-</body>
-</html>
+            <a id="btn-kakao-link" href="https://gqmqegrmydtqxfnzdpty.supabase.co/auth/v1/authorize?provider=kakao&scopes=profile&redirect_to=https%3A%2F%2Ffinance-app-blond-two.vercel.app%2Ffinance-app%2Findex_v1.html" class="auth-button btn-kakao" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                <svg width="20" height="20" viewBox="0 0 20 20
