@@ -2,94 +2,122 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="FinanceOS">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    
-    <script>
-        // Register Service Worker for PWA support
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('[FinanceOS] PWA Service Worker Registered'))
-                    .catch(err => console.log('[FinanceOS] SW Registration Failed', err));
-            });
-        }
-    </script>
-    <script>
-        console.log('[FinanceOS] Bootstrap v=120...');
-        window.onerror = function(msg, url, line, col, error) {
-            var div = document.createElement('div');
-            div.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,0,0,0.9);color:white;padding:20px;z-index:999999;font-family:monospace;font-size:14px;overflow:auto;';
-            div.innerHTML = '<h1>Critical Error</h1>' +
-                            '<p><b>Message:</b> ' + msg + '</p>' +
-                            '<p><b>URL:</b> ' + url + '</p>' +
-                            '<p><b>Line:</b> ' + line + ', <b>Col:</b> ' + col + '</p>' +
-                            '<pre>' + (error && error.stack || '') + '</pre>' +
-                            '<button onclick="location.reload()" style="background:white;color:black;padding:10px;border:none;border-radius:5px;margin-top:20px;">Reload App</button>';
-            if (document.body) {
-                document.body.appendChild(div);
-            } else {
-                document.write(div.outerHTML);
-            }
-            return false;
-        };
-    </script>
-    <title>FinanceOS - Premium Personal Finance</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=block" rel="stylesheet">
-    <link rel="stylesheet" href="styles_v1.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceOS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* --- Login UI Styles --- */
-        #auth-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 9999999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --accent-color: #4361ee;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --header-bg: rgba(255, 255, 255, 0.8);
+        }
+
+        [data-theme='dark'] {
+            --bg-color: #000000;
+            --card-bg: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #999999;
+            --accent-color: #4cc9f0;
+            --border-color: #222222;
+            --header-bg: rgba(0, 0, 0, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: 'Inter', sans-serif;
         }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* Premium UI Components */
+        .glass-header {
+            position: sticky;
+            top: 0;
+            background: var(--header-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover { transform: translateY(-4px); }
+
+        /* Auth Premium UI */
+        #auth-overlay {
+            display: flex;
+            background: #000;
+            position: fixed;
+            inset: 0;
+            z-index: 9999999;
+            align-items: center;
+            justify-content: center;
+        }
+
         .auth-card {
-            background: #111;
-            padding: 40px;
+            background: var(--card-bg);
+            padding: 2.5rem;
             border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             width: 100%;
             max-width: 400px;
+            border: 1px solid var(--border-color);
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.05);
         }
+
         .auth-logo {
-            font-size: 32px;
+            font-size: 2rem;
             font-weight: 800;
-            color: #fff;
-            margin-bottom: 8px;
-            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-color), #7209b7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
+
         .auth-subtitle {
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 32px;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
         }
+
         .auth-button {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             border-radius: 12px;
-            border: none;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-primary);
             font-weight: 600;
-            font-size: 15px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -97,54 +125,65 @@
             gap: 12px;
             margin-bottom: 12px;
             transition: all 0.2s ease;
+            text-decoration: none;
         }
-        .btn-google { background: #fff; color: #000; }
-        .btn-kakao { background: #FEE500; color: #3C1E1E; }
-        .btn-email { background: #222; color: #fff; border: 1px solid #333; }
-        .auth-button:hover { transform: translateY(-2px); opacity: 0.9; }
-        
+
+        .btn-google:hover { background: #f1f1f1; border-color: #ddd; }
+        .btn-kakao { background: #fee500; color: #3c1e1e; border: none; }
+        .btn-kakao:hover { background: #fada00; }
+
         .auth-divider {
             height: 1px;
-            background: #222;
-            margin: 24px 0;
+            background: var(--border-color);
+            margin: 2rem 0;
             position: relative;
         }
+
         .auth-divider::after {
-            content: 'OR';
+            content: "OR";
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: #111;
-            padding: 0 12px;
-            color: #444;
-            font-size: 10px;
-            font-weight: 700;
+            background: var(--card-bg);
+            padding: 0 10px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
         }
+
         .auth-input {
             width: 100%;
-            padding: 12px 16px;
-            background: #222;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #fff;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-primary);
             margin-bottom: 12px;
-            font-size: 14px;
+            outline: none;
         }
+
+        .btn-email {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+        }
+
         .auth-footer {
-            margin-top: 24px;
-            color: #666;
-            font-size: 12px;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
         }
+
         .auth-link {
-            color: #6366F1;
+            color: var(--accent-color);
             cursor: pointer;
-            text-decoration: underline;
+            font-weight: 600;
         }
+
         #auth-error {
-            color: #ef4444;
-            font-size: 12px;
-            margin-bottom: 12px;
+            color: var(--danger-color);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
             display: none;
         }
     </style>
@@ -159,18 +198,18 @@
 </head>
 <body data-active-view="dashboard">
     <!-- Auth Overlay -->
-    <div id="auth-overlay" style="display: flex; background: #000; position: fixed; inset: 0; z-index: 9999999; align-items: center; justify-content: center;">
+    <div id="auth-overlay">
         <div class="auth-card">
             <div class="auth-logo">FinanceOS</div>
             <div class="auth-subtitle">Secure personal wealth management</div>
             
             <div id="auth-error"></div>
 
-            <a id="btn-google-link" href="https://gqmqegrmydtqxfnzdpty.supabase.co/auth/v1/authorize?provider=google&redirect_to=https%3A%2F%2Ffinance-app-blond-two.vercel.app%2Ffinance-app%2Findex_v1.html" class="auth-button btn-google" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px;">
+            <a href="https://gqmqegrmydtqxfnzdpty.supabase.co/auth/v1/authorize?provider=google&redirect_to=https%3A%2F%2Ffinance-app-blond-two.vercel.app%2Ffinance-app%2Findex_v1.html" class="auth-button btn-google" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px;">
                 <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
                 Continue with Google
             </a>
-            <a id="btn-kakao-link" href="https://gqmqegrmydtqxfnzdpty.supabase.co/auth/v1/authorize?provider=kakao&scopes=profile&redirect_to=https%3A%2F%2Ffinance-app-blond-two.vercel.app%2Ffinance-app%2Findex_v1.html" class="auth-button btn-kakao" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px;">
+            <a href="https://gqmqegrmydtqxfnzdpty.supabase.co/auth/v1/authorize?provider=kakao&scopes=profile&redirect_to=https%3A%2F%2Ffinance-app-blond-two.vercel.app%2Ffinance-app%2Findex_v1.html" class="auth-button btn-kakao" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px;">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2.5C5.858 2.5 2.5 5.092 2.5 8.292c0 2.058 1.4 3.867 3.517 4.908l-.892 3.267c-.05.183.158.333.3.233l3.867-2.558C9.558 14.125 9.775 14.133 10 14.133c4.142 0 7.5-2.592 7.5-5.792S14.142 2.5 10 2.5z"/></svg>
                 Continue with Kakao
             </a>
@@ -187,500 +226,34 @@
             </div>
         </div>
     </div>
-    <style>
-        .app-container { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-        body.authenticated .app-container { opacity: 1; pointer-events: auto; }
-        body.authenticated #auth-overlay { display: none !important; }
-    </style>
-    <div id="toast-container"></div>
-    
-    <!-- v101: Fallback now has pointer-events: none to ensure it NEVER blocks clicks -->
-    <div id="loading-fallback" style="position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;font-family:sans-serif;z-index:9999999;background:#0f172a;pointer-events:none;transition:opacity 0.5s ease;">
-        <div style="text-align:center; color: white;">
-            <div style="font-size:24px;margin-bottom:10px;">FinanceOS</div>
-            <div style="font-size:14px;opacity:0.6;">Initializing... (v124)</div>
+
+    <header class="glass-header">
+        <div style="font-size: 1.5rem; font-weight: 800;">FinanceOS</div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <button onclick="toggleTheme()" style="background: none; border: none; cursor: pointer; color: var(--text-primary);">🌓</button>
+            <div id="user-display" style="font-size: 0.9rem; font-weight: 500;"></div>
+            <button onclick="handleLogout()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); background: none; color: var(--text-primary); cursor: pointer;">Logout</button>
         </div>
-    </div>
+    </header>
 
-    <div class="app-container">
-        <!-- Sidebar Navigation (Desktop) -->
-        <aside class="sidebar desktop-only">
-            <div class="logo">
-                <div class="logo-icon"></div>
-                <h1>FinanceOS</h1>
-            </div>
-            
-            <ul class="nav-links">
-                <li><a href="#" class="nav-item active" data-view="dashboard" onclick="window.triggerAppAction('nav_to', 'dashboard')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                    Dashboard</a>
-                </li>
-                <li><a href="#" class="nav-item" data-view="budget" onclick="window.triggerAppAction('nav_to', 'budget')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                    Budget</a>
-                </li>
-                <li><a href="#" class="nav-item" data-view="investments" onclick="window.triggerAppAction('nav_to', 'investments')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                    Investments</a>
-                </li>
-                <li><a href="#" class="nav-item" data-view="retirement" onclick="window.triggerAppAction('nav_to', 'retirement')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                    Retirement</a>
-                </li>
-                <li><a href="#" class="nav-item" data-view="settings" onclick="window.triggerAppAction('nav_to', 'settings')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    Settings</a>
-                </li>
-            </ul>
-            
-            <div class="user-profile">
-                <div class="avatar">DY</div>
-                <div class="user-info">
-                    <div class="user-name">Dawoon</div>
-                    <div class="user-tier">Premium Plan</div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content" id="main-scroll-container" style="pointer-events: auto !important;">
-            <!-- Unified Global Header -->
-            <header class="header" id="main-header">
-                <div class="header-left desktop-only">
-                    <h1 id="view-title">Dashboard</h1>
-                </div>
-                
-                <!-- Month Navigation (Direct child for better stacking control) -->
-                <div id="global-month-nav" class="budget-month-nav">
-                    <button class="btn-nav-arrow" id="prev-month" onclick="window.triggerAppAction('change_month', -1)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    </button>
-                    <span id="current-month-display" class="budget-month-label">April 2026</span>
-                    <button class="btn-nav-arrow" id="next-month" onclick="window.triggerAppAction('change_month', 1)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
-                </div>
-
-                <div class="header-right">
-                    <button class="btn btn-icon" id="btn-upload-header-proxy" title="OCR Upload" onclick="window.triggerAppAction('ocr_upload')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    </button>
-                    <button class="btn btn-icon" id="theme-toggle-proxy" title="Toggle Theme" onclick="window.triggerAppAction('toggle_theme')">
-                        <svg id="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                        <svg id="theme-icon-moon" style="display:none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                    </button>
-                    <button class="btn btn-icon" title="Notifications" onclick="window.triggerAppAction('show_alerts')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                    </button>
-                    <button class="btn btn-primary" id="btn-add-transaction-header" onclick="window.triggerAppAction('add_entry')" style="padding: 0; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" width="26" height="26"><line x1="12" y1="3" x2="12" y2="21"></line><line x1="3" y1="12" x2="21" y2="12"></line></svg>
-                    </button>
-                    <!-- Logout Button -->
-                    <button class="btn btn-icon" title="Logout" onclick="window.handleLogout()" style="color: #ef4444; margin-left: 8px;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    </button>
-                </div>
-            </header>
-
-            <!-- Dashboard View -->
-            <section id="dashboard" class="view-section active">
-                <!-- ── Summary Cards (Side-by-Side like Budget Page) ── -->
-                <div class="budget-summary-row">
-                    <div class="budget-summary-card">
-                        <div class="bsc-label">잔여 예산 (Budget Left)</div>
-                        <div class="bsc-value positive" id="dashboard-budget-left">₩0</div>
-                    </div>
-                    <div class="budget-summary-card">
-                        <div class="bsc-label">월 지출액 (Spent)</div>
-                        <div class="bsc-value" id="dashboard-monthly-spent">₩0</div>
-                    </div>
-                </div>
-
-                <div class="metrics-grid">
-                    <div class="card glass">
-                        <div class="card-header">
-                            <h3>투자 (Investments)</h3>
-                        </div>
-                        <div class="card-body">
-                            <h2 class="metric-value" id="dashboard-invest-value">₩0</h2>
-                            <p class="metric-subtitle" id="dash-investments-subtitle">준비 중...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card glass mt-4">
-                    <h3>카테고리별 지출</h3>
-                    <div class="chart-container mt-4" style="height: 280px; position: relative;">
-                        <canvas id="budgetChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="card glass mt-4">
-                    <h3>Net Worth Overview</h3>
-                    <div class="chart-container mt-4" style="height: 300px;">
-                        <canvas id="netWorthChart"></canvas>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Budget View -->
-            <section id="budget" class="view-section">
-
-                <!-- (Redundant Top Bar removed in favor of Unified Header) -->
-
-
-                <!-- ── Summary Cards ─────────────────────────────── -->
-                <div class="budget-summary-row">
-                    <div class="budget-summary-card">
-                        <div class="bsc-label">총 지출액 (Spent)</div>
-                        <div class="bsc-value" id="budget-total-spent">₩0</div>
-                    </div>
-                    <div class="budget-summary-card">
-                        <div class="bsc-label">잔여 예산 (Left)</div>
-                        <div class="bsc-value positive" id="budget-remaining-value">₩0</div>
-                    </div>
-                </div>
-
-                <!-- ── Line Items ────────────────────────────────── -->
-                <div class="budget-section-card budget-transactions-card">
-                    <!-- Sort subheader -->
-                    <div class="li-sort-row">
-                        <button class="li-sort-btn active" id="sort-date" onclick="window.triggerAppAction('set_sort', 'date')">
-                            일시 <span id="sort-icon-date">▼</span> / 가맹점
-                        </button>
-                        <button class="li-sort-btn" id="sort-amount" onclick="window.triggerAppAction('set_sort', 'amount')">
-                            금액 <span id="sort-icon-amount" style="opacity:0.3">↕</span>
-                        </button>
-                    </div>
-                    <!-- Transactions table (unchanged — JS renders into confirmed-tx-body) -->
-                    <div class="li-list-wrap">
-                        <table class="li-table">
-                            <tbody id="confirmed-tx-body">
-                                <!-- Transactions rendered here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ── Category Budgets ──────────────────────────── -->
-                <div class="budget-section-card">
-                    <div class="budget-section-header">
-                        <h3 class="budget-section-title">예산 관리</h3>
-                        <div class="budget-section-actions">
-                            <button class="btn-topbar-icon" onclick="window.triggerAppAction('menu_more')" title="Manage Categories">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div id="budget-category-list">
-                        <!-- Category rows rendered here -->
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Category Drill-down View -->
-            <section id="category-detail" class="view-section">
-                <!-- Header (Simplified Focused Style) -->
-                <header class="header" style="margin-bottom: 1.25rem;">
-                    <div class="header-left">
-                        <button class="btn btn-icon" onclick="window.switchView('budget')" title="Back">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                        </button>
-                        <div style="display: flex; flex-direction: column; gap: 2px; margin-left: 8px;">
-                            <h1 id="cat-detail-name" style="font-size: 1.15rem; font-weight: 800; margin: 0; line-height: 1.2;">Category</h1>
-                            <p id="cat-detail-subtitle" style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin: 0;">Spending Details</p>
-                        </div>
-                    </div>
-                    <div class="header-right">
-                        <!-- Removed all global actions for focused view -->
-                    </div>
-                </header>
-
-
-                <!-- Category Summary Card -->
-                <div class="card premium-summary-card mb-4" style="padding: 1rem 1.25rem !important;">
-                    <div class="cat-summary-meta" style="margin-bottom: 0.15rem;">
-                        <span class="cat-summary-label" style="font-size: 0.65rem;">이번 달 지출 현황</span>
-                    </div>
-                    <h2 class="cat-detail-amount" id="cat-detail-spent-big" style="font-size: 1.35rem; letter-spacing: -0.03em; margin: 0.25rem 0 0.75rem 0 !important;">₩0 / ₩0</h2>
-                    <div class="cat-progress-track" style="margin-bottom: 0.4rem; height: 6px;">
-                        <div id="cat-detail-progress" class="cat-progress-bar"></div>
-                    </div>
-                    <p class="cat-summary-footer" id="cat-detail-status-text" style="font-size: 0.8rem; font-weight: 700;">예산 대비 0%</p>
-                </div>
-
-                <!-- Transaction List -->
-                <div class="budget-section-card budget-transactions-card">
-                    <div class="li-sort-row">
-                        <button class="li-sort-btn active" id="detail-sort-date" onclick="window.toggleDetailSort('date')" style="padding-left: 0.5rem;">
-                            일시 <span id="detail-sort-icon-date">▼</span> / 가맹점
-                        </button>
-                        <button class="li-sort-btn" id="detail-sort-amount" onclick="window.toggleDetailSort('amount')" style="margin-left: auto; width: 85px; justify-content: center;">
-                            금액 <span id="detail-sort-icon-amount" style="opacity:0.3">↕</span>
-                        </button>
-                    </div>
-                    <div class="li-list-wrap">
-                        <table class="li-table">
-                            <tbody id="cat-detail-tx-list"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-
-
-            <!-- Investments View -->
-            <section id="investments" class="view-section">
-                <div class="metrics-grid mb-4">
-                    <div class="card glass">
-                        <div class="card-header">
-                            <h3>Total Portfolio</h3>
-                        </div>
-                        <div class="card-body">
-                            <h2 class="metric-value" id="portfolio-total-value">₩0</h2>
-                            <p class="metric-subtitle">Total Assets in KRW</p>
-                        </div>
-                    </div>
-                    <div class="card glass">
-                        <div class="card-header">
-                            <h3>Day Change</h3>
-                        </div>
-                        <div class="card-body">
-                            <h2 class="metric-value positive" id="portfolio-day-change">+0.00%</h2>
-                            <p class="metric-subtitle">Across all holdings</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card glass mt-4">
-                    <div class="flex-between mb-4">
-                        <h3>Assets & Holdings</h3>
-                        <button class="btn btn-primary" onclick="window.triggerAppAction('add_asset')">+ Add Asset</button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Asset</th>
-                                    <th class="mobile-hide">Shares</th>
-                                    <th class="mobile-hide">Avg Cost</th>
-                                    <th>Price</th>
-                                    <th>Value</th>
-                                    <th>Return</th>
-                                </tr>
-                            </thead>
-                            <tbody id="investments-body">
-                                <!-- Assets rendered here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Retirement View -->
-            <section id="retirement" class="view-section">
-                <div class="retirement-container">
-                    <div class="card glass retirement-controls">
-                        <h3>Planning Assumptions</h3>
-                        <div class="premium-form-row">
-                            <label>Current Age</label>
-                            <input type="number" id="current-age" value="30" oninput="updateRetirementProjection()">
-                        </div>
-                        <div class="premium-form-row">
-                            <label>Retirement Age</label>
-                            <input type="number" id="retirement-age" value="65" oninput="updateRetirementProjection()">
-                        </div>
-                        <div class="premium-form-row">
-                            <label>Monthly Contribution (₩)</label>
-                            <input type="text" id="monthly-contribution" value="1,000,000" inputmode="numeric" oninput="formatCurrencyInput(this); updateRetirementProjection()">
-                        </div>
-                        <div class="premium-form-row">
-                            <label>Annual Return (%)</label>
-                            <input type="number" id="annual-return" value="7" step="0.5" oninput="updateRetirementProjection()">
-                        </div>
-                    </div>
-                    <div class="card glass retirement-chart-card">
-                        <h3>Projection: Wealth at Retirement</h3>
-                        <div class="chart-container">
-                            <canvas id="retirementChart"></canvas>
-                        </div>
-                        <div class="flex-between mt-4">
-                            <div>
-                                <p class="metric-subtitle">Estimated Total Value</p>
-                                <h2 class="metric-value" id="retirement-total-value">₩0</h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Settings View -->
-            <section id="settings" class="view-section">
-                <div class="card glass" style="max-width: 600px; margin: 0 auto;">
-                    <h3>Custom Categorization Rules</h3>
-                    <p class="metric-subtitle">Transactions matching these patterns will be automatically assigned to categories.</p>
-                    <div class="table-responsive mt-4">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Pattern</th>
-                                    <th>Category</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rules-body">
-                                <!-- Rules rendered here -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-4 pt-4" style="border-top: 1px solid var(--glass-border);">
-                        <h5>Add New Rule</h5>
-                        <div class="flex-between gap-2 mt-2">
-                            <input type="text" id="new-rule-pattern" class="modern-input" placeholder="e.g. Starbucks" style="flex: 1;">
-                            <select id="new-rule-category" class="modern-input" style="flex: 1;">
-                                <!-- Categories populated here -->
-                            </select>
-                            <button class="btn btn-premium-primary" onclick="window.triggerAppAction('add_rule')">Add</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- Mobile Bottom Navigation -->
-        <nav class="mobile-nav">
-            <a href="#" class="nav-item active" data-view="dashboard" onclick="window.triggerAppAction('nav_to', 'dashboard')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-            </a>
-            <a href="#" class="nav-item" data-view="budget" onclick="window.triggerAppAction('nav_to', 'budget')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            </a>
-            <a href="#" class="nav-item" data-view="retirement" onclick="window.triggerAppAction('nav_to', 'retirement')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            </a>
-            <a href="#" class="nav-item" data-view="investments" onclick="window.triggerAppAction('nav_to', 'investments')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-            </a>
-            <a href="#" class="nav-item" data-view="settings" onclick="window.triggerAppAction('nav_to', 'settings')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-            </a>
-        </nav>
-    </div>
-
-    <!-- Modals (Add/Edit Transaction) -->
-    <div id="modal-tx-detail" class="modal-overlay" style="display: none;">
-        <div class="modal-content premium-modal">
-            <div class="modal-header">
-                <h2 id="modal-tx-title">지출 내역</h2>
-                <button class="btn btn-icon" id="btn-close-tx-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="modal-tx-type-toggle" class="toggle-container mb-4">
-                    <div class="toggle-item active expense" onclick="window.setModalTxType('expense')">Expense</div>
-                    <div class="toggle-item income" onclick="window.setModalTxType('income')">Income</div>
-                </div>
-                
-                <div class="premium-form-row">
-                    <label>Merchant / Name</label>
-                    <input type="text" id="tx-merchant" class="modern-input" placeholder="e.g. Starbucks">
-                </div>
-                <div class="premium-form-row">
-                    <label>Amount (₩)</label>
-                    <input type="text" id="tx-amount" class="modern-input" placeholder="0" inputmode="numeric" oninput="formatCurrencyInput(this)">
-                </div>
-                <div class="premium-form-row">
-                    <label>Category</label>
-                    <select id="tx-category" class="modern-input">
-                        <!-- Populated by JS -->
-                    </select>
-                </div>
-                <div class="premium-form-row">
-                    <label>Date</label>
-                    <input type="date" id="tx-date" class="modern-input">
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-premium-danger" id="btn-delete-tx-modal-new" style="display: none;">Delete</button>
-                <div style="flex: 1;"></div>
-                <button class="btn btn-premium-secondary" id="btn-cancel-edit-tx-modal">Cancel</button>
-                <button class="btn btn-premium-primary" id="btn-save-tx-modal">Save</button>
+    <main class="dashboard-grid">
+        <div class="card" style="grid-column: span 2;">
+            <h3 style="margin-bottom: 1.5rem;">Net Worth Overview</h3>
+            <div id="chart-container" style="height: 300px; width: 100%;"></div>
+        </div>
+        
+        <div class="card">
+            <h3>Quick Actions</h3>
+            <div style="display: grid; gap: 10px; margin-top: 1.5rem;">
+                <button onclick="alert('Coming Soon: Add Transaction')" class="auth-button btn-email">Add Transaction</button>
+                <button onclick="alert('Coming Soon: Add Asset')" class="auth-button" style="margin: 0;">Add Asset</button>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- Category Management Modal -->
-    <div id="modal-category-mgmt" class="modal-overlay" style="display: none;">
-        <div class="modal-content premium-modal" style="max-width: 500px; padding: 1.5rem; display: flex; flex-direction: column; max-height: 85vh;">
-            <div class="modal-header" style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); flex-shrink: 0;">
-                <h3 style="margin: 0; font-size: 1.25rem;">예산 관리</h3>
-                <button class="btn btn-icon" id="btn-close-cat-modal" onclick="window.closeCategoryManagementModal()">&times;</button>
-            </div>
-            
-            <div id="cat-mgmt-add-btn-wrap" style="flex-shrink: 0; margin-bottom: 1rem;">
-                <button class="btn btn-premium-primary" onclick="window.showCategoryAddForm()" style="width: 100%;">+ 추가</button>
-            </div>
-
-            <div class="modal-body" style="flex: 1; overflow-y: auto; padding-right: 4px; padding-bottom: 100px; -webkit-overflow-scrolling: touch;">
-                <p class="text-muted mb-3" style="font-size: 0.85rem;">카테고리별 예산 한도와 순서를 관리하세요.</p>
-                
-                <div id="cat-mgmt-list" class="cat-mgmt-list">
-                    <!-- Categories rendered here -->
-                </div>
-
-                <div id="cat-edit-form" style="display: none; border-top: 1px solid var(--glass-border); padding-top: 1.5rem; margin-top: 1.5rem;">
-                    <h4 id="cat-form-title" class="mb-3">Edit Category</h4>
-                    <input type="hidden" id="cat-edit-index">
-                    <div class="premium-form-row">
-                        <label>Category Name</label>
-                        <input type="text" id="cat-edit-name" class="modern-input" placeholder="e.g. Dining Out">
-                    </div>
-                    <div class="premium-form-row">
-                        <label>Monthly Limit (₩)</label>
-                        <input type="text" id="cat-edit-limit" class="modern-input" placeholder="0" inputmode="numeric" oninput="window.formatCurrencyInput(this)">
-                    </div>
-                    <div class="premium-form-row">
-                        <label>Color</label>
-                        <div id="cat-color-grid" class="cat-color-grid" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 8px;">
-                            <!-- Color options rendered here -->
-                        </div>
-                    </div>
-                    <div class="modal-actions mt-4">
-                        <button class="btn btn-premium-secondary" onclick="window.hideCategoryEditForm()">Cancel</button>
-                        <button class="btn btn-premium-primary" id="btn-save-cat-edit" onclick="window.saveCategoryEdit()">Apply Changes</button>
-                    </div>
-                </div>
-            </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Hidden file input for OCR -->
-    <input type="file" id="file-input" accept="image/*" style="display: none;">
-
-    <button id="dev-mobile-toggle" style="position: fixed; top: 80px; right: 20px; z-index: 99999; background: #6366f1; color: white; border: none; padding: 8px; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" width="22" height="22"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-    </button>
-
-    <!-- Chart.js and Tesseract -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <!-- Supabase Client -->
+    <!-- Supabase & App Logic -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app_v1.js?v=130"></script>
-
-    <script>
-        // v102: Hide fallback when app boots or after timeout
-        window.addEventListener('DOMContentLoaded', function() {
-            var hideFallback = function() {
-                var fallback = document.getElementById('loading-fallback');
-                if (fallback) {
-                    fallback.style.opacity = '0';
-                    setTimeout(function() { fallback.style.display = 'none'; }, 500);
-                }
-            };
-            // Force hide after 4s no matter what (v102)
-            setTimeout(hideFallback, 4000);
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="app_v1.js"></script>
 </body>
 </html>
