@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Redirecting...</title>
+    <title>FinanceOS</title>
     <script>
-        // v2: Using a RELATIVE path. This forces the browser to STAY on the current website.
-        window.location.href = "./finance-app/index_v1.html" + window.location.hash;
+        // v3: Relative path - the most reliable way to stay on the same domain
+        window.location.href = "/finance-app/index_v1.html";
     </script>
 </head>
-<body style="background: black; color: white;">
-    <p>Loading FinanceOS...</p>
+<body style="background: black; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+    <div style="text-align: center; font-family: sans-serif;">
+        <h2>FinanceOS</h2>
+        <p>Redirecting to dashboard...</p>
+    </div>
 </body>
 </html>
