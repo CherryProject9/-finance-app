@@ -22,31 +22,18 @@ function bootstrap() {
     }
 
     window.financeOS_booted = true;
-    console.log('[FinanceOS] Bootstrap v=135...');
-
-    // v135: Pre-load Direct Login Links to bypass browser blocks
-    const prepLinks = async () => {
-        const providers = ['google', 'kakao'];
-        for (const p of providers) {
-            try {
-                const { data } = await dbClient.auth.signInWithOAuth({
-                    provider: p,
-                    options: { 
-                        redirectTo: window.location.origin,
-                        skipBrowserRedirect: true 
-                    }
-                });
-                const link = document.getElementById(`btn-${p}-link`);
-                if (link && data && data.url) {
-                    link.href = data.url;
-                    console.log(`[Auth] Pre-loaded ${p} link.`);
-                }
-            } catch (e) {
-                console.warn(`[Auth] Failed to pre-load ${p} link`, e);
-            }
+    console.log('[FinanceOS] Bootstrap v=137...');
+    
+    // Check initial auth state
+    dbClient.auth.onAuthStateChange((event, session) => {
+        console.log('[Auth] State change:', event);
+        if (session) {
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('user-display').textContent = session.user.email;
+        } else {
+            document.getElementById('auth-overlay').style.display = 'flex';
         }
-    };
-    prepLinks();
+    });
 
     window.handleLogout = async function() {
         await dbClient.auth.signOut();
