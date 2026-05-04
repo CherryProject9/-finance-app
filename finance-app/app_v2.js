@@ -57,7 +57,7 @@ function bootstrap() {
             provider: provider,
             options: {
                 redirectTo: window.location.origin + window.location.pathname,
-                scopes: provider === 'kakao' ? 'profile' : undefined
+                scopes: provider === 'kakao' ? 'profile_nickname' : undefined
             }
         });
         if (error) {
