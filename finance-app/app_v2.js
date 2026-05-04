@@ -51,6 +51,24 @@ function bootstrap() {
         
         if (result.error) console.error(result.error.message);
     };
+
+    window.handleOAuth = async function(provider) {
+        const { error } = await dbClient.auth.signInWithOAuth({
+            provider: provider,
+            options: {
+                redirectTo: window.location.origin + window.location.pathname,
+                scopes: provider === 'kakao' ? 'profile' : undefined
+            }
+        });
+        if (error) {
+            console.error('[Auth] OAuth error:', error.message);
+            const errDiv = document.getElementById('auth-error');
+            if (errDiv) {
+                errDiv.textContent = 'Login failed: ' + error.message;
+                errDiv.style.display = 'block';
+            }
+        }
+    };
     console.log('[FinanceOS] Origin:', window.location.origin);
     console.log('[FinanceOS] API URL:', typeof API_URL !== 'undefined' ? API_URL : 'pending');
     
@@ -68,7 +86,7 @@ function bootstrap() {
             
             // Wait for data load before showing app
             const hasData = await loadData();
-            refreshUI();
+            refreshAllUI();
             
             document.body.classList.add('authenticated');
         } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
@@ -883,7 +901,7 @@ function resetAppState() {
     transactionsState = [];
     customCategoryRules = [];
     investmentsState = [];
-    refreshUI();
+    refreshAllUI();
 }
 
 // --- Auth Action Handlers ---
