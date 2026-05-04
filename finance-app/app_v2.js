@@ -869,6 +869,51 @@ async function loadData() {
     // 3. Merge Logic
     let finalData = cloudData || localData;
     
+    // --- DEEP MERGE UN-LOGGED-IN DATA ---
+    try {
+        const localRescueDataRaw = localStorage.getItem('financeOS_master_data') || localStorage.getItem('financeOS_master_data_null');
+        if (localRescueDataRaw) {
+            const localRescueData = JSON.parse(localRescueDataRaw);
+            if (localRescueData && localRescueData.transactionsState && localRescueData.transactionsState.length > 0) {
+                console.log("🚀 FOUND UN-LOGGED-IN LOCAL DATA. MERGING INTO CLOUD!");
+                if (!finalData) finalData = {};
+                
+                const existingIds = new Set((finalData.transactionsState || []).map(t => String(t.id)));
+                const missingTxs = localRescueData.transactionsState.filter(t => !existingIds.has(String(t.id)));
+                
+                if (missingTxs.length > 0) {
+                    if (!finalData.transactionsState) finalData.transactionsState = [];
+                    finalData.transactionsState = finalData.transactionsState.concat(missingTxs);
+                    
+                    if (localRescueData.monthlyBudgetsState) {
+                        if (!finalData.monthlyBudgetsState) finalData.monthlyBudgetsState = {};
+                        for (const month in localRescueData.monthlyBudgetsState) {
+                            if (!finalData.monthlyBudgetsState[month]) {
+                                finalData.monthlyBudgetsState[month] = localRescueData.monthlyBudgetsState[month];
+                            } else {
+                                const localCats = localRescueData.monthlyBudgetsState[month].categories || [];
+                                const finalCats = finalData.monthlyBudgetsState[month].categories || [];
+                                localCats.forEach(lCat => {
+                                    const fCat = finalCats.find(c => c.name === lCat.name);
+                                    if (fCat && lCat.spent > fCat.spent) fCat.spent = lCat.spent;
+                                });
+                            }
+                        }
+                    }
+                    setTimeout(() => { 
+                        saveData().then(success => {
+                            if (success) {
+                                localStorage.removeItem('financeOS_master_data');
+                                localStorage.removeItem('financeOS_master_data_null');
+                            }
+                        });
+                    }, 2000);
+                }
+            }
+        }
+    } catch(e) {}
+
+    
     if (finalData) {
         if (finalData.monthlyBudgetsState) monthlyBudgetsState = finalData.monthlyBudgetsState;
         if (finalData.transactionsState) transactionsState = finalData.transactionsState;
