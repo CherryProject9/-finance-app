@@ -1,3 +1,18 @@
+// FORCE KILL ALL SERVICE WORKERS
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        let needsReload = false;
+        for(let registration of registrations) {
+            registration.unregister();
+            needsReload = true;
+        }
+        if (needsReload) {
+            console.log("Killed service worker, reloading...");
+            setTimeout(() => { window.location.href = window.location.href.split('?')[0]; }, 500);
+        }
+    });
+}
+
 // --- Supabase Configuration ---
 const SUPABASE_URL = 'https://gqmqegrmydtqxfnzdpty.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_UHVHuIwKWVGuMGgqD-ti6A_mFMAxXr9';
@@ -36,8 +51,12 @@ function bootstrap() {
     });
 
     window.handleLogout = async function() {
-        await dbClient.auth.signOut();
-        location.reload();
+        try {
+            await dbClient.auth.signOut();
+        } catch (e) {
+            console.error("Logout error (likely SW cache block):", e);
+        }
+        location.href = window.location.pathname; // force hard reload
     };
 
     window.handleEmailAuth = async function(type) {
@@ -1000,9 +1019,7 @@ function showAuthError(msg) {
     err.style.display = 'block';
 }
 
-window.handleLogout = async function() {
-    await dbClient.auth.signOut();
-};
+// Removed duplicate handleLogout
 
 async function migrateLegacyData() {
     try {
