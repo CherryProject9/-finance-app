@@ -842,6 +842,26 @@ async function loadData() {
     try {
         const localDataRaw = localStorage.getItem('financeOS_master_data_' + currentUser.id);
         localData = localDataRaw ? JSON.parse(localDataRaw) : null;
+        
+        // --- EMERGENCY DATA RESCUE ---
+        // If the user has trapped data from before logging in, forcefully rescue it
+        const trappedDataRaw = localStorage.getItem('financeOS_master_data') || localStorage.getItem('financeOS_master_data_null');
+        if (trappedDataRaw) {
+            const trappedData = JSON.parse(trappedDataRaw);
+            // Only rescue if the trapped data has transactions AND the current cloud data is empty
+            if (trappedData && trappedData.transactionsState && trappedData.transactionsState.length > 0) {
+                if (!cloudData || !cloudData.transactionsState || cloudData.transactionsState.length === 0) {
+                    console.log("🚀 RESCUING TRAPPED LOCAL DATA!");
+                    localData = trappedData; // Force localData to the trapped data
+                    // Automatically save it to the cloud shortly after loading
+                    setTimeout(() => { 
+                        saveData().then(success => {
+                            if (success) localStorage.removeItem('financeOS_master_data');
+                        }); 
+                    }, 2000);
+                }
+            }
+        }
     } catch (e) {}
 
     // 3. Merge Logic
