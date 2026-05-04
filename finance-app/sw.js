@@ -1,4 +1,4 @@
-const CACHE_NAME = 'financeos-v158';
+const CACHE_NAME = 'financeos-v159';
 const ASSETS = [
   './',
   './index.html',
@@ -29,8 +29,10 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Simple network-first strategy for data, stale-while-revalidate for assets
-  if (event.request.url.includes('/api/')) {
+  // Bypass cache for API calls, Supabase requests, and non-GET requests
+  if (event.request.url.includes('/api/') || 
+      event.request.url.includes('supabase.co') || 
+      event.request.method !== 'GET') {
     event.respondWith(fetch(event.request));
     return;
   }
