@@ -61,9 +61,9 @@ function bootstrap() {
         try {
             await dbClient.auth.signOut();
         } catch (e) {
-            console.error("Logout error (likely SW cache block):", e);
+            console.error("Logout error:", e);
         }
-        location.href = window.location.pathname; // force hard reload
+        window.location.reload(true);
     };
 
     window.handleEmailAuth = async function(type) {
@@ -874,7 +874,34 @@ async function loadData() {
     } catch (e) {}
 
     // 3. Merge Logic
-    let finalData = cloudData || localData;
+    let finalData = cloudData || {};
+    
+    // --- DEEP MERGE LOGGED-IN LOCAL DATA ---
+    if (localData && localData.transactionsState) {
+        const existingIds = new Set((finalData.transactionsState || []).map(t => String(t.id)));
+        const missingTxs = localData.transactionsState.filter(t => !existingIds.has(String(t.id)));
+        if (missingTxs.length > 0) {
+            console.log("🚀 MERGING LOCAL-ONLY LOGGED-IN DATA INTO CLOUD!");
+            if (!finalData.transactionsState) finalData.transactionsState = [];
+            finalData.transactionsState = finalData.transactionsState.concat(missingTxs);
+            setTimeout(() => { saveData(); }, 2000);
+        }
+        if (localData.monthlyBudgetsState) {
+            if (!finalData.monthlyBudgetsState) finalData.monthlyBudgetsState = {};
+            for (const month in localData.monthlyBudgetsState) {
+                if (!finalData.monthlyBudgetsState[month]) {
+                    finalData.monthlyBudgetsState[month] = localData.monthlyBudgetsState[month];
+                } else {
+                    const localCats = localData.monthlyBudgetsState[month].categories || [];
+                    const finalCats = finalData.monthlyBudgetsState[month].categories || [];
+                    localCats.forEach(lCat => {
+                        const fCat = finalCats.find(c => c.name === lCat.name);
+                        if (fCat && lCat.spent > fCat.spent) fCat.spent = lCat.spent;
+                    });
+                }
+            }
+        }
+    }
     
     // --- DEEP MERGE UN-LOGGED-IN DATA ---
     try {
