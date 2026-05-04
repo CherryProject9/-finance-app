@@ -13,14 +13,7 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     
     <script>
-        // Register Service Worker for PWA support
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('[FinanceOS] PWA Service Worker Registered'))
-                    .catch(err => console.log('[FinanceOS] SW Registration Failed', err));
-            });
-        }
+        // PWA Service Worker Registration disabled to fix cache issues
     </script>
     <script>
         console.log('[FinanceOS] Bootstrap v=999...');
