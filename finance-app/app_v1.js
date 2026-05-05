@@ -16,6 +16,7 @@ if ('serviceWorker' in navigator) {
 // --- Supabase Configuration ---
 const SUPABASE_URL = 'https://gqmqegrmydtqxfnzdpty.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_UHVHuIwKWVGuMGgqD-ti6A_mFMAxXr9';
+const API_URL = '/api/data';
 let dbClient = null;
 let currentUser = null;
 
@@ -37,7 +38,7 @@ function bootstrap() {
     }
 
     window.financeOS_booted = true;
-    console.log('[FinanceOS] Bootstrap v=137...');
+    console.log('[FinanceOS] Bootstrap v=138...');
     
     // Check initial auth state
     dbClient.auth.onAuthStateChange((event, session) => {
@@ -78,7 +79,7 @@ function bootstrap() {
         if (result.error) console.error(result.error.message);
     };
     console.log('[FinanceOS] Origin:', window.location.origin);
-    console.log('[FinanceOS] API URL:', typeof API_URL !== 'undefined' ? API_URL : 'pending');
+    console.log('[FinanceOS] API URL:', API_URL);
     
     // Removed diagnostic that could cause issues on some mobile browsers
 
@@ -798,7 +799,7 @@ function saveTransactionFromModal(id) {
 
 // --- Settings & Utils ---
 const API_BASE = (window.location.protocol === 'file:') ? 'http://localhost:8080' : window.location.origin;
-const API_URL = '/api/data';
+
 
 async function saveData() {
     if (!currentUser) return false;
