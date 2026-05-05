@@ -899,36 +899,39 @@ async function loadData(forceRescue = false) {
         let localData = null;
 
         if (!forceRescue) {
-            const { data, error } = await dbClient
-                .from('finance_storage')
-                .select('state')
-                .eq('user_id', currentUser.id)
-                .maybeSingle();
+            // 1. Fetch from Supabase using user_id
+            try {
+                const { data, error } = await dbClient
+                    .from('finance_storage')
+                    .select('state')
+                    .eq('user_id', currentUser.id)
+                    .maybeSingle();
+                    
+                if (error) {
+                    console.error('[Supabase] Fetch error:', error);
+                    alert("SUPABASE LOAD ERROR: " + error.message + " (" + error.code + ")");
+                    throw error;
+                }
                 
-            if (error) {
-                console.error('[Supabase] Fetch error:', error);
-                alert("SUPABASE LOAD ERROR: " + error.message + " (" + error.code + ")");
-                throw error;
+                if (data) {
+                    cloudData = data.state;
+                } else {
+                    console.log('[Supabase] No cloud data found for this user.');
+                    await handleFirstLoginMigration();
+                }
+            } catch (e) {
+                console.warn('[Supabase] Cloud load failed, falling back to local/rescue.', e);
             }
-            
-            if (data) {
-                cloudData = data.state;
-            } else {
-                console.log('[Supabase] No cloud data found for this user.');
-                await handleFirstLoginMigration();
-            }
-        } catch (e) {
-            console.warn('[Supabase] Cloud load failed, falling back to local/rescue.', e);
-        }
 
-        // 2. Load from localStorage
-        try {
-            const localDataRaw = localStorage.getItem('financeOS_master_data_' + currentUser.id);
-            if (localDataRaw) {
-                localData = JSON.parse(localDataRaw);
+            // 2. Load from localStorage
+            try {
+                const localDataRaw = localStorage.getItem('financeOS_master_data_' + currentUser.id);
+                if (localDataRaw) {
+                    localData = JSON.parse(localDataRaw);
+                }
+            } catch (e) {
+                console.warn('[Local] Load failed.', e);
             }
-        } catch (e) {
-            console.warn('[Local] Load failed.', e);
         }
 
         // 3. Merge Logic
