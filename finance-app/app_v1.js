@@ -20,6 +20,18 @@ const API_URL = '/api/data';
 let dbClient = null;
 let currentUser = null;
 
+// --- Global State (Moved to top to prevent ReferenceErrors) ---
+let isUIRefreshing = false;
+let transactionsState = [];
+let investmentsState = [];
+let customCategoryRules = [
+    { id: 1, pattern: '우와한형제들', category: '식비' },
+    { id: 2, pattern: '우아한형제들', category: '식비' }
+];
+let usdToKrwRate = 1350; // Fallback rate
+let currentMonthView = new Date().toISOString().substring(0, 7); // "YYYY-MM"
+let monthlyBudgetsState = {}; // { "YYYY-MM": { totalLimit, categories: [...] } }
+
 function bootstrap() {
     if (window.financeOS_booted) return;
     
@@ -38,23 +50,33 @@ function bootstrap() {
     }
 
     window.financeOS_booted = true;
-    console.log('[FinanceOS] Bootstrap v=138...');
+    console.log('[FinanceOS] Bootstrap v=140...');
     
-    // Check initial auth state
-    dbClient.auth.onAuthStateChange((event, session) => {
+    // Unified Auth State Listener
+    dbClient.auth.onAuthStateChange(async (event, session) => {
         console.log('[Auth] State change:', event, !!session);
+        
         if (session) {
-            console.log('[Auth] Session detected, hiding overlay...');
+            currentUser = session.user;
+            console.log('[Auth] Valid session found:', currentUser.email);
+            
+            // UI Updates
             document.body.classList.add('authenticated');
             const overlay = document.getElementById('auth-overlay');
             if (overlay) overlay.style.display = 'none';
             const userDisp = document.getElementById('user-display');
-            if (userDisp) userDisp.textContent = session.user.email;
+            if (userDisp) userDisp.textContent = currentUser.email;
+
+            // Data Loading
+            await loadData();
+            refreshAllUI();
         } else {
+            currentUser = null;
             console.log('[Auth] No session, showing overlay...');
             document.body.classList.remove('authenticated');
             const overlay = document.getElementById('auth-overlay');
             if (overlay) overlay.style.display = 'flex';
+            resetAppState();
         }
     });
 
@@ -67,42 +89,9 @@ function bootstrap() {
         window.location.reload(true);
     };
 
-    window.handleEmailAuth = async function(type) {
-        const email = document.getElementById('auth-email').value;
-        const password = document.getElementById('auth-password').value;
-        if (!email || !password) return;
-        
-        const result = (type === 'signup') 
-            ? await dbClient.auth.signUp({ email, password })
-            : await dbClient.auth.signInWithPassword({ email, password });
-        
-        if (result.error) console.error(result.error.message);
-    };
     console.log('[FinanceOS] Origin:', window.location.origin);
     console.log('[FinanceOS] API URL:', API_URL);
-    
-    // Removed diagnostic that could cause issues on some mobile browsers
-
-
-
-    // --- Auth Listeners ---
-    dbClient.auth.onAuthStateChange(async (event, session) => {
-        console.log('[Auth] Event:', event);
-        
-        if (session) {
-            currentUser = session.user;
-            console.log('[Auth] Valid session found:', currentUser.email);
-            
-            const hasData = await loadData();
-            refreshAllUI();
-            
-            document.body.classList.add('authenticated');
-        } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
-            currentUser = null;
-            document.body.classList.remove('authenticated');
-            resetAppState();
-        }
-    });
+}
 
     window.updateSyncDebug = function(msg) {
         console.log('[Sync] ' + msg);
@@ -339,7 +328,6 @@ function syncMonthLabels() {
     if (labelNew) labelNew.textContent = `${monthNames[month-1]} ${year}`;
 }
 
-let isUIRefreshing = false;
 function refreshAllUI() {
     if (isUIRefreshing) return;
     isUIRefreshing = true;
@@ -1148,7 +1136,6 @@ if (typeof Chart !== 'undefined') {
 
 let retirementChartInstance = null;
 let budgetChartInstance = null;
-let transactionsState = [];
 let editingTxId = null;
 let isEditingLimits = false;
 let txSortCol = 'date';
@@ -1159,19 +1146,6 @@ let detailSortCol = 'date';
 let detailSortOrder = 'desc';
 let activeDetailCategory = null;
 
-// --- Global Investments State ---
-let investmentsState = [];
-let usdToKrwRate = 1350; // Fallback rate
-
-// --- Custom Categorization Rules ---
-let customCategoryRules = [
-    { id: 1, pattern: '우와한형제들', category: '식비' },
-    { id: 2, pattern: '우아한형제들', category: '식비' }
-];
-
-// --- Monthly Budget Navigation State ---
-let currentMonthView = new Date().toISOString().substring(0, 7); // "YYYY-MM"
-let monthlyBudgetsState = {}; // { "YYYY-MM": { totalLimit, categories: [...] } }
 const categoryPalette = [
     '#1E3A8A', // Navy
     '#2563EB', // Blue
