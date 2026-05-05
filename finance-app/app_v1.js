@@ -51,6 +51,16 @@ const chartInstances = {};
 const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
 const formatKRW = (value) => new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value);
 
+const chartColors = {
+    primary: '#6366f1',
+    secondary: '#a855f7',
+    positive: '#10b981',
+    negative: '#ef4444',
+    warning: '#f59e0b',
+    gridLines: 'rgba(255, 255, 255, 0.05)',
+    text: '#94a3b8'
+};
+
 const categoryPalette = [
     '#1E3A8A', '#2563EB', '#06B6D4', '#14B8A6', '#10B981', '#84CC16', '#EAB308', '#F97316', '#EF4444'
 ];
@@ -1152,15 +1162,6 @@ window.syncHybridDate = function(el, type) {
     }
 };
 
-const chartColors = {
-    primary: '#6366f1',
-    secondary: '#a855f7',
-    positive: '#10b981',
-    negative: '#ef4444',
-    warning: '#f59e0b',
-    gridLines: 'rgba(255, 255, 255, 0.05)',
-    text: '#94a3b8'
-};
 
 if (typeof Chart !== 'undefined') {
     Chart.defaults.color = chartColors.text;
