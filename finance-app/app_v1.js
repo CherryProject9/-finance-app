@@ -816,14 +816,21 @@ async function saveData() {
 
     // 2. Sync to Supabase
     try {
-        const { error } = await dbClient
-            .from('finance_storage')
-            .upsert({ 
-                user_id: currentUser.id, 
-                state: data 
-            }, { onConflict: 'user_id' });
+        let dbError;
+        const { data: existing } = await dbClient.from('finance_storage').select('user_id').eq('user_id', currentUser.id).maybeSingle();
+        
+        if (existing) {
+            const { error: updErr } = await dbClient.from('finance_storage')
+                .update({ state: data })
+                .eq('user_id', currentUser.id);
+            dbError = updErr;
+        } else {
+            const { error: insErr } = await dbClient.from('finance_storage')
+                .insert({ user_id: currentUser.id, state: data });
+            dbError = insErr;
+        }
             
-        if (error) throw error;
+        if (dbError) throw dbError;
         return true;
     } catch (e) {
         console.warn("[Supabase] Save failed:", e);
