@@ -827,6 +827,7 @@ async function saveData() {
         return true;
     } catch (e) {
         console.warn("[Supabase] Save failed:", e);
+        alert("SUPABASE SAVE FAILED: " + JSON.stringify(e));
         return false;
     }
 }
