@@ -39,21 +39,22 @@ const formatKRW = (value) => new Intl.NumberFormat('ko-KR', { style: 'currency',
 const categoryPalette = [
     '#1E3A8A', '#2563EB', '#06B6D4', '#14B8A6', '#10B981', '#84CC16', '#EAB308', '#F97316', '#EF4444'
 ];
+
 const defaultBudgetStructure = {
-    totalLimit: 2000000,
+    totalLimit: 4000000,
     categories: [
-        { name: '식비', spent: 0, limit: 450000, colorHex: '#0EA5E9' },
-        { name: '외식', spent: 0, limit: 150000, colorHex: '#EF4444' },
-        { name: '쿠팡', limit: 600000, colorHex: '#EAB308', spent: 0 },
-        { name: '쇼핑', spent: 0, limit: 300000, colorHex: '#ec4899' },
-        { name: '의료비', spent: 0, limit: 100000, colorHex: '#F97316' },
-        { name: '교통/통신비', limit: 100000, colorHex: '#64748B', spent: 0 },
-        { name: '공과금', limit: 500000, colorHex: '#10B981', spent: 0 },
-        { name: 'Subscription', limit: 50000, colorHex: '#A16207', spent: 0 },
-        { name: '여가비', spent: 0, limit: 0, colorHex: '#F59E0B' },
-        { name: '기타', spent: 0, limit: 0, colorHex: '#475569' }
+        { name: '주거비', limit: 1500000, colorHex: '#6366F1' },
+        { name: '식비', limit: 500000, colorHex: '#0EA5E9' },
+        { name: '외식', limit: 300000, colorHex: '#EF4444' },
+        { name: '교통비', limit: 300000, colorHex: '#64748B' },
+        { name: '여가비', limit: 200000, colorHex: '#F59E0B' },
+        { name: '공과금', limit: 200000, colorHex: '#10B981' },
+        { name: '의료비', limit: 100000, colorHex: '#F97316' },
+        { name: '기타', limit: 400000, colorHex: '#475569' },
+        { name: '쇼핑', limit: 200000, colorHex: '#ec4899' }
     ]
 };
+
 
 function bootstrap() {
     if (window.financeOS_booted) return;
@@ -1166,37 +1167,6 @@ let detailSortCol = 'date';
 let detailSortOrder = 'desc';
 let activeDetailCategory = null;
 
-const categoryPalette = [
-    '#1E3A8A', // Navy
-    '#2563EB', // Blue
-    '#06B6D4', // Cyan
-    '#14B8A6', // Teal
-    '#10B981', // Green
-    '#84CC16', // Lime
-    '#EAB308', // Yellow
-    '#F97316', // Orange
-    '#EF4444', // Red
-    '#F43F5E', // Rose
-    '#EC4899', // Pink
-    '#8B5CF6', // Purple
-    '#64748B', // Slate
-    '#A16207'  // Brown
-];
-
-const defaultBudgetStructure = {
-    totalLimit: 4000000,
-    categories: [
-        { name: '주거비', limit: 1500000, colorHex: '#6366F1' },
-        { name: '식비', limit: 500000, colorHex: '#0EA5E9' },
-        { name: '외식', limit: 300000, colorHex: '#EF4444' },
-        { name: '교통비', limit: 300000, colorHex: '#64748B' },
-        { name: '여가비', limit: 200000, colorHex: '#F59E0B' },
-        { name: '공과금', limit: 200000, colorHex: '#10B981' },
-        { name: '의료비', limit: 100000, colorHex: '#F97316' },
-        { name: '기타', limit: 400000, colorHex: '#475569' },
-        { name: '쇼핑', limit: 200000, colorHex: '#ec4899' }
-    ]
-};
 
 function getActiveBudget() {
     if (!monthlyBudgetsState[currentMonthView]) {
