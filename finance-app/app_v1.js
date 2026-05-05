@@ -36,7 +36,15 @@ let monthlyBudgetsState = {}; // { "YYYY-MM": { totalLimit, categories: [...] } 
 let isEditingLimits = false;
 let editingTxId = null;
 let txSortCol = 'date';
+let detailSortCol = 'date';
 let detailSortOrder = 'desc';
+let activeDetailCategory = null;
+let activeTxId = null;
+let modalTxType = 'expense';
+let retirementChartInstance = null;
+let budgetChartInstance = null;
+let pendingTransactions = [];
+const API_BASE = (window.location.protocol === 'file:') ? 'http://localhost:8080' : window.location.origin;
 const chartInstances = {};
 
 // --- Utility Formatters (Moved to top) ---
@@ -395,8 +403,6 @@ window.refreshAllUI = refreshAllUI;
 
 
 // --- Global UI State ---
-let activeTxId = null;
-let modalTxType = 'expense';
 
 // Replace toggleTxActions with row activation
 window.toggleTxActions = function(id, event) {
@@ -816,7 +822,6 @@ function saveTransactionFromModal(id) {
 }
 
 // --- Settings & Utils ---
-const API_BASE = (window.location.protocol === 'file:') ? 'http://localhost:8080' : window.location.origin;
 
 
 async function saveData() {
@@ -1162,17 +1167,7 @@ if (typeof Chart !== 'undefined') {
     Chart.defaults.font.family = "'Inter', sans-serif";
 }
 
-let retirementChartInstance = null;
-let budgetChartInstance = null;
-let editingTxId = null;
-let isEditingLimits = false;
-let txSortCol = 'date';
-let txSortOrder = 'desc';
 
-// Category Detail Sorting State
-let detailSortCol = 'date';
-let detailSortOrder = 'desc';
-let activeDetailCategory = null;
 
 
 function getActiveBudget() {
@@ -1840,7 +1835,6 @@ function initThemeToggle() {
 }
 
 // --- OCR Receipt Scanner Logic v=61 ---
-let pendingTransactions = [];
 
 function initOCRScanner() {
     const addTxBtns = document.querySelectorAll('#btn-add-transaction, #btn-add-transaction-header');
