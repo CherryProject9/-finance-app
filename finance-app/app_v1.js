@@ -820,14 +820,18 @@ async function saveData() {
         const { data: existing } = await dbClient.from('finance_storage').select('user_id').eq('user_id', currentUser.id).maybeSingle();
         
         if (existing) {
-            const { error: updErr } = await dbClient.from('finance_storage')
+            const { data: updData, error: updErr } = await dbClient.from('finance_storage')
                 .update({ state: data })
-                .eq('user_id', currentUser.id);
+                .eq('user_id', currentUser.id)
+                .select();
             dbError = updErr;
+            if (!updErr && (!updData || updData.length === 0)) dbError = new Error("UPDATE silently failed (0 rows). Check RLS UPDATE policy!");
         } else {
-            const { error: insErr } = await dbClient.from('finance_storage')
-                .insert({ user_id: currentUser.id, state: data });
+            const { data: insData, error: insErr } = await dbClient.from('finance_storage')
+                .insert({ user_id: currentUser.id, state: data })
+                .select();
             dbError = insErr;
+            if (!insErr && (!insData || insData.length === 0)) dbError = new Error("INSERT silently failed (0 rows). Check RLS INSERT policy!");
         }
             
         if (dbError) throw dbError;
