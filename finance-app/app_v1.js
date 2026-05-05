@@ -36,6 +36,7 @@ let monthlyBudgetsState = {}; // { "YYYY-MM": { totalLimit, categories: [...] } 
 let isEditingLimits = false;
 let editingTxId = null;
 let txSortCol = 'date';
+let txSortOrder = 'desc';
 let detailSortCol = 'date';
 let detailSortOrder = 'desc';
 let activeDetailCategory = null;
