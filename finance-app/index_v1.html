@@ -16,7 +16,6 @@
         // PWA Service Worker Registration disabled to fix cache issues
     </script>
     <script>
-        console.log('[FinanceOS] Bootstrap v=999...');
         window.onerror = function(msg, url, line, col, error) {
             var div = document.createElement('div');
             div.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,0,0,0.9);color:white;padding:20px;z-index:999999;font-family:monospace;font-size:14px;overflow:auto;';
@@ -535,6 +534,10 @@
                             </select>
                             <button class="btn btn-premium-primary" onclick="window.triggerAppAction('add_rule')">Add</button>
                         </div>
+                    </div>
+                    <div class="mt-4 pt-4" style="border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <h5>Advanced Tools</h5>
+                        <button class="btn btn-premium-primary" onclick="window.triggerAppAction('force_restore')" style="width: 100%; margin-top: 10px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">Force Restore April Data Backup</button>
                     </div>
                 </div>
             </section>
