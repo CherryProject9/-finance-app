@@ -91,7 +91,6 @@ function bootstrap() {
 
     console.log('[FinanceOS] Origin:', window.location.origin);
     console.log('[FinanceOS] API URL:', API_URL);
-}
 
     window.updateSyncDebug = function(msg) {
         console.log('[Sync] ' + msg);
