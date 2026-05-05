@@ -285,7 +285,9 @@ const appActions = {
             // Manually trigger the rescue logic
             const success = await loadData(true); // pass true to force rescue
             if (success) {
-                alert('복구가 완료되었습니다! 2026년 4월로 이동하여 데이터를 확인하세요.');
+                console.log('[FinanceOS] Restoration successful, forcing cloud sync...');
+                await saveData(); 
+                alert('복구가 완료되었습니다! 데이터가 클라우드에 저장되었습니다.');
                 refreshAllUI();
             } else {
                 alert('복구에 실패했습니다. 콘솔 로그를 확인하세요.');
