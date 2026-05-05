@@ -32,6 +32,13 @@ let usdToKrwRate = 1350; // Fallback rate
 let currentMonthView = new Date().toISOString().substring(0, 7); // "YYYY-MM"
 let monthlyBudgetsState = {}; // { "YYYY-MM": { totalLimit, categories: [...] } }
 
+// --- UI State (Moved to top to prevent ReferenceErrors) ---
+let isEditingLimits = false;
+let editingTxId = null;
+let txSortCol = 'date';
+let detailSortOrder = 'desc';
+const chartInstances = {};
+
 // --- Utility Formatters (Moved to top) ---
 const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
 const formatKRW = (value) => new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value);
@@ -1478,7 +1485,6 @@ window.showCategoryManagementModal = function() {
 };
 
 // --- Charts Orchestration ---
-const chartInstances = {};
 
 function initCharts() {
     renderNetWorthChart();
