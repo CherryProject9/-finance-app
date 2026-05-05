@@ -893,14 +893,20 @@ async function loadData() {
                 .eq('user_id', currentUser.id)
                 .maybeSingle();
                 
-            if (error) throw error;
+            if (error) {
+                console.error('[Supabase] Fetch error:', error);
+                alert("SUPABASE LOAD ERROR: " + error.message + " (" + error.code + ")");
+                throw error;
+            }
+            
             if (data) {
                 cloudData = data.state;
             } else {
+                console.log('[Supabase] No cloud data found for this user.');
                 await handleFirstLoginMigration();
             }
         } catch (e) {
-            console.warn('[Supabase] Load failed.', e);
+            console.warn('[Supabase] Cloud load failed, falling back to local/rescue.', e);
         }
 
         // 2. Load from localStorage
