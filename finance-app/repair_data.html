@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FinanceOS - DATABASE REPAIR TOOL</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 40px; background: #f0f0f0; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        button { background: #ef4444; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-size: 18px; cursor: pointer; width: 100%; }
+        button:disabled { background: #ccc; }
+        #log { margin-top: 20px; font-family: monospace; background: #000; color: #0f0; padding: 10px; height: 200px; overflow: auto; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Database Repair Tool</h1>
+    <p>This tool will bypass the app and push your missing April data directly to Supabase.</p>
+    
+    <div id="auth-section">
+        <button onclick="login()">1. LOGIN (Google)</button>
+    </div>
+    
+    <div id="repair-section" style="display:none;">
+        <button id="btn-repair" onclick="repair()">2. FIX MY DATABASE</button>
+    </div>
+
+    <div id="log">Waiting for login...</div>
+</div>
+
+<script>
+    // --- SUPABASE CONFIG ---
+    // Extracting config from app_v1.js logic (using the same keys)
+    const SUPABASE_URL = "https://ofatvttihvstpgptvscx.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYXR2dHRpaHZzdHBncHR2c2N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTI2NjAwNzAsImV4cCI6MjAyODI1NjA3MH0.T3v9f0O-k0q_kQ-v6_W_U_p_k0k"; 
+    
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function log(msg) {
+        const l = document.getElementById('log');
+        l.innerHTML += "> " + msg + "<br>";
+        l.scrollTop = l.scrollHeight;
+    }
+
+    async function login() {
+        log("Redirecting to Google login...");
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.href }
+        });
+        if (error) log("Login Error: " + error.message);
+    }
+
+    async function checkUser() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            log("Logged in as: " + session.user.email);
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('repair-section').style.display = 'block';
+        }
+    }
+
+    async function repair() {
+        const btn = document.getElementById('btn-repair');
+        btn.disabled = true;
+        log("Starting repair process...");
+
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const user = session.user;
+
+            // 1. Fetch current data
+            log("Fetching current data from cloud...");
+            const { data, error: fetchErr } = await supabase
+                .from('finance_storage')
+                .select('state')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            if (fetchErr) throw fetchErr;
+
+            let currentState = (data && data.state) || { transactionsState: [], monthlyBudgetsState: {} };
+            log("Current transactions: " + (currentState.transactionsState ? currentState.transactionsState.length : 0));
+
+            // 2. The Master Backup
+            const masterBackup = {"transactionsState": [{"id": 1777467969989, "date": "2026-04-29", "merchant": "\uc0b0\ub538\uae30, \uacc4\ub780", "amount": 37800, "category": "\ucfe0\ud321", "type": "expense"}, {"id": 1777467954081, "date": "2026-04-29", "merchant": "\uce74\uce20\ud050\ube0c", "amount": 16000, "category": "\uc678\uc2dd", "type": "expense"}, {"id": 1777382527105, "date": "2026-04-28", "merchant": "Lucas Blueberry", "amount": 61000, "category": "\ucfe0\ud321", "type": "expense"}, {"id": 1777376663017, "date": "2026-04-28", "merchant": "\uacfc\uc77c", "amount": 23900, "category": "\ucfe0\ud321", "type": "expense"}, {"id": 1777373922174, "date": "2026-04-28", "merchant": "\uc0c8\ubcbd\uc9d1", "amount": 16000, "category": "\uc678\uc2dd", "type": "expense"}, {"id": 1777373908518, "date": "2026-04-28", "merchant": "\uc720\ub2c8\ud074\ub85c", "amount": 14809, "category": "\uc1fc\ud551", "type": "expense"}, {"id": 1777349969948, "date": "2026-04-28", "merchant": "\uc720\ub2c8\ud074\ub85c", "amount": 19900, "category": "\uc1fc\ud551"}, {"id": 1777345870025, "date": "2026-04-28", "merchant": "\ub124\uc774\ubc84 \ub137\ud50c \uba64\ubc84\uc27d", "amount": 8000, "category": "Subscription"}, {"id": 1777291533281, "date": "2026-04-27", "merchant": "\uceec\ub9ac", "amount": 22087, "category": "\uc2dd\ube44"}, {"id": 1777290196012, "date": "2026-04-27", "merchant": "\ubc30\ub2ec", "amount": 15784, "category": "\uc678\uc2dd"}, {"id": 1777281441781, "date": "2026-04-27", "merchant": "\uc815\ud615\uc678\uacfc", "amount": 189800, "category": "\uc758\ub8cc\ube44"}, {"id": 1777281413726, "date": "2026-04-13", "merchant": "\uc778\ud130\ub137 \uc694\uae08", "amount": 19250, "category": "\uad50\ud1b5/\ud1b5\uc2e0\ube44"}, {"id": 1777281196444, "date": "2026-04-20", "merchant": "\ud578\ub4dc\ud3f0 \uc694\uae08", "amount": 57870, "category": "\uad50\ud1b5/\ud1b5\uc2e0\ube44"}, {"id": 1777270983305, "date": "2026-04-25", "merchant": "\uc720\ub2c8\ud074\ub85c", "amount": 32900, "category": "\uc1fc\ud551"}, {"id": 1777270962219, "date": "2026-04-27", "merchant": "\uc720\ub2c8\ud074\ub85c", "amount": 29900, "category": "\uc1fc\ud551"}, {"id": 1777270918056, "date": "2026-04-27", "merchant": "\uceec\ub9ac \uba64\ubc84\uc27d", "amount": 1900, "category": "Subscription"}, {"id": 1777270533182, "date": "2026-04-27", "merchant": "\ub2e5\ud130\uc5d0\ub514\uc158 \uc601\uc591\uc81c", "amount": 80000, "category": "\uc758\ub8cc\ube44"}, {"id": 1777213107480, "date": "2026-04-26", "merchant": "\ubc30\ub2ec-\ub3c4\uc2a4\ud0c0\ucf54\uc2a4", "amount": 45083, "category": "\uc678\uc2dd"}, {"id": 1777213079058, "date": "2026-04-25", "merchant": "\ud53c\uc5b4 \ucee4\ud53c", "amount": 17100, "category": "\uc678\uc2dd"}, {"id": 1777213054496, "date": "2026-04-26", "merchant": "\uacfc\uc77c", "amount": 9900, "category": "\ucfe0\ud321"}, {"id": 1777213009496, "date": "2026-04-26", "merchant": "\ud0b4\uc2a4\ud074\ub7fd", "amount": 66370, "category": "\uc2dd\ube44"}, {"id": 1777212971386, "date": "2026-04-26", "merchant": "Apple Services", "amount": 20441, "category": "Subscription"}, {"id": 1777212874655, "date": "2026-04-26", "merchant": "\ub178\ube0c\ub79c\ub4dc", "amount": 29780, "category": "\uc2dd\ube44"}, {"id": 1777212841934, "date": "2026-04-26", "merchant": "\ud30c\ub9ac\ud06c\ub77c\uc0c1", "amount": 36780, "category": "\uc678\uc2dd"}, {"id": 1776949897311, "date": "2026-04-23", "merchant": "\uacfc\uc77c", "amount": 27500, "category": "\ucfe0\ud321"}, {"id": 1776947981177, "date": "2026-04-23", "merchant": "\uc815\ud615\uc678\uacfc", "amount": 167000, "category": "\uc758\ub8cc\ube44"}, {"id": 1618033990000, "date": "2026-04-06", "merchant": "\uc2a4\ud0c0\ubc85\uc2a4", "amount": 6500, "category": "\uc2dd\ube44"}, {"id": 1775975260116, "date": "2026-04-12", "merchant": "\uc2a4\ud0c0\ubc85\uc2a4", "amount": 10000, "category": "\uc2dd\ube44"}, {"id": 1775975257377, "date": "2026-04-11", "merchant": "\ud30c\ub9ac\ud06c\ub77c\uc0c1", "amount": 15000, "category": "\uacf5\uacfc\uae08"}, {"id": 1775975257314, "date": "2026-04-11", "merchant": "\uacfc\uc77c \uc7a5", "amount": 35460, "category": "\uacf5\uacfc\uae08"}, {"id": 1775975476047, "date": "2026-04-09", "merchant": "\uc640\uc778", "amount": 68000, "category": "\uacf5\uacfc\uae08"}, {"id": 1775702509708, "date": "2026-04-08", "merchant": "\uc815\uc721\uc810 \uace0\uae30", "amount": 30000, "category": "\uc2dd\ube44"}, {"id": 1775702508125, "date": "2026-04-08", "merchant": "\uceec\ub9ac", "amount": 20898, "category": "\uc2dd\ube44"}, {"id": 1775702505892, "date": "2026-04-08", "merchant": "\uacfc\uc77c", "amount": 33000, "category": "\uacf5\uacfc\uae08"}, {"id": 1775702510501, "date": "2026-04-06", "merchant": "\ubc30\ub2ec", "amount": 26000, "category": "\uc678\uc2dd"}, {"id": 1775702505091, "date": "2026-04-08", "merchant": "\uc138\ud0c1\ube44", "amount": 19100, "category": "\uacf5\uacfc\uae08"}, {"id": 1775702503648, "date": "2026-04-06", "merchant": "\uc0b0\ubd80\uc778\uacfc", "amount": 32000, "category": "\uc758\ub8cc\ube44"}, {"id": 1775702504714, "date": "2026-04-06", "merchant": "\uc0b0\ubd80\uc778\uacfc \uc601\uc591\uc81c", "amount": 99000, "category": "\uc758\ub8cc\ube44"}, {"id": 1775702512068, "date": "2026-04-06", "merchant": "\ub179\ucc28", "amount": 30616, "category": "\uc2dd\ube44"}, {"id": 1775702512224, "date": "2026-04-05", "merchant": "\uc250\uc774\ud06c\uc251", "amount": 6900, "category": "\uc678\uc2dd"}, {"id": 1775702506244, "date": "2026-04-03", "merchant": "\uc624\uc5b4\uc637", "amount": 103386, "category": "\uc1fc\ud551"}, {"id": 1775702503788, "date": "2026-04-04", "merchant": "\ucee4\ud53c", "amount": 16000, "category": "\uc678\uc2dd"}, {"id": 1775702509567, "date": "2026-04-03", "merchant": "\uae40\uc218\uc0ac \uc2a4\uc2dc", "amount": 50000, "category": "\uc678\uc2dd"}, {"id": 1775703153505, "date": "2026-04-05", "merchant": "\ubc30\ub2ec", "amount": 14507, "category": "\uc678\uc2dd"}, {"id": 1775703193450, "date": "2026-04-01", "merchant": "\uacfc\uc77c", "amount": 48000, "category": "\ucfe0\ud321"}, {"id": 1775703193823, "date": "2026-04-01", "merchant": "\ubc30\ub2ec", "amount": 16000, "category": "\uc678\uc2dd"}, {"id": 1775791468701, "date": "2026-04-09", "merchant": "\ubcd1\uc6d0", "amount": 50000, "category": "\uc758\ub8cc\ube44"}, {"id": 1775791475315, "date": "2026-04-09", "merchant": "\uacfc\uc77c", "amount": 35000, "category": "\ucfe0\ud321"}, {"id": 1776058311425, "date": "2026-04-12", "merchant": "\uc62c\ub9ac\ube0c\uc601", "amount": 30450, "category": "\uc1fc\ud551"}, {"id": 1776081471462, "date": "2026-04-13", "merchant": "\uacfc\uc77c", "amount": 50000, "category": "\ucfe0\ud321"}, {"id": 1776081471533, "date": "2026-04-13", "merchant": "\uace0\uae30", "amount": 34000, "category": "\uc2dd\ube44"}, {"id": 1776331265284, "date": "2026-04-16", "merchant": "\uc815\ud615\uc678\uacfc", "amount": 175000, "category": "\uc758\ub8cc\ube44"}, {"id": 1776331269338, "date": "2026-04-16", "merchant": "\uacfc\uc77c", "amount": 29970, "category": "\ucfe0\ud321"}, {"id": 1776331270922, "date": "2026-04-16", "merchant": "\uc0b0\ubd80\uc778\uacfc", "amount": 34000, "category": "\uc758\ub8cc\ube44"}, {"id": 1776429132217, "date": "2026-04-17", "merchant": "\uacfc\uc77c", "amount": 98800, "category": "\ucfe0\ud321"}, {"id": 1776429134788, "date": "2026-04-17", "merchant": "\ubc30\ub2ec", "amount": 29558, "category": "\uc678\uc2dd"}, {"id": 1776429374237, "date": "2026-04-17", "merchant": "\uc120\ud638\uc601\uc591\uc81c", "amount": 80000, "category": "\uc758\ub8cc\ube44"}, {"id": 1776429429578, "date": "2026-04-17", "merchant": "\ub8f0\ub8e8\ub808\ubaac", "amount": 129000, "category": "\uc1fc\ud551"}, {"id": 1776429517986, "date": "2026-04-17", "merchant": "\uc720\ub2c8\ud074\ub85c", "amount": 40000, "category": "\uc1fc\ud551"}, {"id": 1776692338360, "date": "2026-04-20", "merchant": "\uc815\ud615\uc678\uacfc", "amount": 167000, "category": "\uc758\ub8cc\ube44"}, {"id": 1776692343506, "date": "2026-04-20", "merchant": "\uc0b0\ubd80\uc778\uacfc", "amount": 28000, "category": "\uc758\ub8cc\ube44"}, {"id": 1776692453970, "date": "2026-04-20", "merchant": "\ub124\uc774\ube44\uce74\uc6b4\ud2f0", "amount": 68900, "category": "\uc1fc\ud551"}, {"id": 1776695897941, "date": "2026-04-20", "merchant": "\uacfc\uc77c", "amount": 22000, "category": "\ucfe0\ud321"}, {"id": 1776700219890, "date": "2026-04-21", "merchant": "\ub8f0\ub8e8\ub808\ubaac", "amount": 33660, "category": "\uc1fc\ud551"}, {"id": 1776749788786, "date": "2026-04-21", "merchant": "Economist", "amount": 139950, "category": "Subscription"}, {"id": 1776918144102, "date": "2026-04-22", "merchant": "\uce58\uacfc", "amount": 18500, "category": "\uc758\ub8cc\ube44"}, {"id": 1776918136230, "date": "2026-04-22", "merchant": "\ub514\ud330 \uc8fc\ucc28\ube44", "amount": 21000, "category": "\uad50\ud1b5/\ud1b5\uc2e0\ube44"}]};
+
+            // 3. Merge
+            log("Merging backup data...");
+            const existingIds = new Set(currentState.transactionsState.map(tx => tx.id));
+            let added = 0;
+            masterBackup.transactionsState.forEach(tx => {
+                if (!existingIds.has(tx.id)) {
+                    currentState.transactionsState.push(tx);
+                    added++;
+                }
+            });
+            log("Added " + added + " new transactions.");
+
+            // 4. Update Supabase
+            log("Saving fixed state to cloud...");
+            const { error: upsertErr } = await supabase
+                .from('finance_storage')
+                .upsert({ user_id: user.id, state: currentState, updated_at: new Date() });
+
+            if (upsertErr) throw upsertErr;
+
+            log("✅ REPAIR SUCCESSFUL!");
+            log("You can now close this tab and refresh your FinanceOS app.");
+            alert("SUCCESS! Your database has been repaired. April data is now permanently in the cloud.");
+
+        } catch (e) {
+            log("❌ ERROR: " + e.message);
+            console.error(e);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    checkUser();
+</script>
+
+</body>
+</html>
