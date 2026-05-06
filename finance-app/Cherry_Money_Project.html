@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Cherry Money - Final Standalone</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CORE CSS (Consolidated from styles_v1.css) --- */
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --accent-primary: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --accent-secondary: #a855f7;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --positive: #10b981;
+            --negative: #E05252;
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+            --transition-fast: 0.15s ease;
+            --sidebar-width: 280px;
+            --nav-height-mobile: 60px;
+            --glass-bg: #ffffff;
+            --glass-border: rgba(0, 0, 0, 0.07);
+            --glass-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.06);
+            --glass-blur: none;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #14151a;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box !important; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.5;
+            transition: background-color 0.3s ease;
+        }
+
+        .app-container { display: flex; height: 100vh; width: 100%; overflow: hidden; }
+        
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            height: 100%;
+            z-index: 100;
+        }
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; }
+        .logo-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); }
+        .logo h1 { font-size: 1.5rem; font-weight: 700; }
+        .nav-links { list-style: none; flex: 1; }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+            color: var(--text-muted); text-decoration: none; border-radius: var(--radius-md);
+            margin-bottom: 8px; transition: var(--transition-fast); font-weight: 500;
+        }
+        .nav-item.active { background: rgba(99, 102, 241, 0.1); color: var(--accent-primary); border-left: 3px solid var(--accent-primary); }
+        .nav-item:hover { color: var(--text-primary); background: rgba(0,0,0,0.02); }
+
+        /* Main Content */
+        .main-content { flex: 1; overflow-y: auto; padding: 2rem 3rem; position: relative; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.03em; }
+
+        /* Cards & UI Elements */
+        .card { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: 1.5rem; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); margin-bottom: 1.5rem; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
+        .metric-value { font-size: 2rem; font-weight: 800; letter-spacing: -0.04em; margin-top: 0.5rem; }
+        .metric-subtitle { font-size: 0.85rem; color: var(--text-muted); }
+        .positive { color: var(--positive); }
+        .negative { color: var(--negative); }
+
+        /* Tables */
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .data-table th { text-align: left; padding: 12px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; border-bottom: 1px solid var(--glass-border); }
+        .data-table td { padding: 12px; border-bottom: 1px solid var(--glass-border); vertical-align: middle; }
+        .li-row:hover { background: rgba(99, 102, 241, 0.03); cursor: pointer; }
+
+        /* Mobile Nav */
+        .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height-mobile); background: var(--bg-secondary); border-top: 1px solid var(--glass-border); z-index: 1000; }
+        
+        /* Auth Overlay */
+        #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a0c; z-index: 999999; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: #14151a; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 400px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
+        .auth-button { width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 600; margin-bottom: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-google { background: white; color: black; }
+        .btn-kakao { background: #FEE500; color: #3C1E1E; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        .modal-content { background: var(--bg-secondary); padding: 2rem; border-radius: 24px; width: 90%; max-width: 450px; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .modern-input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--bg-primary); color: var(--text-primary); font-family: inherit; }
+
+        /* Loader */
+        #loading-fallback { position: fixed; top:0; left:0; right:0; bottom:0; background: #0a0a0c; z-index: 1000000; display: flex; align-items: center; justify-content: center; color: white; flex-direction: column; gap: 20px; transition: opacity 0.5s; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .mobile-nav { display: flex; justify-content: space-around; align-items: center; }
+            .main-content { padding: 1rem; padding-bottom: 5rem; }
+            .header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .metrics-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+            .metric-value { font-size: 1.25rem; }
+        }
+        
+        .budget-summary-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+        .budget-summary-card { flex: 1; background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1rem; text-align: center; box-shadow: var(--glass-shadow); }
+        .bsc-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.25rem; }
+        .bsc-value { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
+    </style>
+</head>
+<body data-theme="light">
+
+    <!-- Loading Fallback -->
+    <div id="loading-fallback">
+        <div class="spinner"></div>
+        <div style="font-weight: 600; letter-spacing: 0.05em;">CHERRY MONEY LOADING...</div>
+    </div>
+
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" style="display: none;">
+        <div class="auth-card">
+            <div class="auth-logo">Cherry Money</div>
+            <p class="auth-subtitle">Premium Wealth Management</p>
+            <button class="auth-button btn-google" onclick="handleSocialLogin('google')">
+                <img src="https://www.google.com/favicon.ico" width="18"> Continue with Google
+            </button>
+            <button class="auth-button btn-kakao" onclick="handleSocialLogin('kakao')">
+                Continue with Kakao
+            </button>
+            <div style="color: #444; margin: 20px 0; font-size: 12px;">OR</div>
+            <input type="email" id="auth-email" class="modern-input" placeholder="Email" style="margin-bottom: 10px; background: #222; border-color: #333; color: white;">
+            <input type="password" id="auth-password" class="modern-input" placeholder="Password" style="margin-bottom: 20px; background: #222; border-color: #333; color: white;">
+            <button class="auth-button" onclick="handleEmailAuth('signin')" style="background: var(--accent-primary); color: white;">Sign In</button>
+            <div id="auth-error" style="color: #ef4444; font-size: 13px; margin-top: 15px; display: none;"></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h1>Cherry Money</h1>
+            </div>
+            <nav class="nav-links">
+                <a href="#" class="nav-item active" data-view="dashboard">Dashboard</a>
+                <a href="#" class="nav-item" data-view="budget">Budget</a>
+                <a href="#" class="nav-item" data-view="investments">Investments</a>
+                <a href="#" class="nav-item" data-view="retirement">Retirement</a>
+                <a href="#" class="nav-item" data-view="settings">Settings</a>
+            </nav>
+            <div style="margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--glass-border);">
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;" id="user-display">Not logged in</div>
+                <button class="auth-button" onclick="handleLogout()" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; font-size: 0.8rem; padding: 8px;">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1 id="view-title">Dashboard</h1>
+                <div id="global-month-nav" style="display: none; align-items: center; gap: 1rem;">
+                    <button class="btn" onclick="changeMonth(-1)" style="padding: 5px 10px;">&larr;</button>
+                    <span id="current-month-display" style="font-weight: 700; min-width: 120px; text-align: center;">May 2026</span>
+                    <button class="btn" onclick="changeMonth(1)" style="padding: 5px 10px;">&rarr;</button>
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <button class="btn" onclick="toggleTheme()" style="padding: 10px; border-radius: 50%; border: 1px solid var(--glass-border);">&or;</button>
+                    <button class="btn" onclick="showAddTransactionModal()" style="background: var(--accent-primary); color: white; padding: 10px 20px; border-radius: 12px; font-weight: 600;">+ Add</button>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section id="dashboard" class="view-section active">
+                <div class="budget-summary-row">
+                    <div class="budget-summary-card">
+                        <div class="bsc-label">Budget Left</div>
+                        <div class="bsc-value positive" id="dash-left">₩0</div>
+                    </div>
+                    <div class="budget-summary-card">
+                        <div class="bsc-label">Monthly Spent</div>
+                        <div class="bsc-value" id="dash-spent">₩0</div>
+                    </div>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="card">
+                        <div class="metric-subtitle">Investments</div>
+                        <div class="metric-value" id="dash-invest-value">₩0</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Spending by Category</h3>
+                    <div style="height: 300px; margin-top: 1rem;">
+                        <canvas id="budgetChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Recent Transactions</h3>
+                    <div id="dash-recent-list" style="margin-top: 1rem;"></div>
+                </div>
+            </section>
+
+            <!-- Budget View -->
+            <section id="budget" class="view-section" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 id="budget-month-label">May 2026 Budget</h3>
+                        <button class="btn" onclick="isEditingLimits = !isEditingLimits; refreshAllUI();" style="font-size: 0.8rem;">Edit Limits</button>
+                    </div>
+                    <div id="budget-category-list"></div>
+                </div>
+                
+                <div class="card">
+                    <h3>Transaction List</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Merchant</th>
+                                    <th style="text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="confirmed-tx-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Investments View -->
+            <section id="investments" class="view-section" style="display: none;">
+                <div class="card">
+                    <h3>Portfolio Overview</h3>
+                    <div class="metric-value" id="invest-total">₩0</div>
+                </div>
+                <div class="card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Asset</th>
+                                <th>Price</th>
+                                <th style="text-align: right;">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="investments-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Retirement View -->
+            <section id="retirement" class="view-section" style="display: none;">
+                <div class="card">
+                    <h3>Retirement Projection</h3>
+                    <div class="metric-value" id="retirement-total-value">₩0</div>
+                    <div style="height: 300px; margin-top: 2rem;">
+                        <canvas id="retirementChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings View -->
+            <section id="settings" class="view-section" style="display: none;">
+                <div class="card">
+                    <h3>Database & Rescue</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Force restoration of April backup if data is missing.</p>
+                    <button class="btn" onclick="forceRescueData()" style="background: #ef4444; color: white; width: 100%; padding: 15px;">RESCUE APRIL DATA (67 TX)</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Mobile Nav -->
+    <nav class="mobile-nav">
+        <a href="#" class="nav-item active" data-view="dashboard">Dash</a>
+        <a href="#" class="nav-item" data-view="budget">Budget</a>
+        <a href="#" class="nav-item" data-view="investments">Invest</a>
+        <a href="#" class="nav-item" data-view="retirement">Retire</a>
+    </nav>
+
+    <!-- Modal -->
+    <div id="modal-tx-detail" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-title" style="margin-bottom: 1.5rem;">Add Transaction</h3>
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="tx-date" class="modern-input">
+            </div>
+            <div class="form-group">
+                <label>Merchant</label>
+                <input type="text" id="tx-merchant" class="modern-input" placeholder="e.g. Starbucks">
+            </div>
+            <div class="form-group">
+                <label>Amount (₩)</label>
+                <input type="text" id="tx-amount" class="modern-input" placeholder="0" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')">
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="tx-category" class="modern-input"></select>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 2rem;">
+                <button class="btn" onclick="document.getElementById('modal-tx-detail').style.display='none'" style="flex: 1;">Cancel</button>
+                <button class="btn" onclick="saveTransactionFromModal()" style="flex: 1; background: var(--accent-primary); color: white;">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // --- CONFIGURATION ---
+        const SUPABASE_URL = 'https://ofatvttihvstpgptvscx.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYXR2dHRpaHZzdHBncHR2c2N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTI2NjAwNzAsImV4cCI6MjAyODI1NjA3MH0.T3v9f0O-k0q_kQ-v6_W_U_p_k0k';
+        
+        let dbClient = null;
+        let currentUser = null;
+        let transactionsState = [];
+        let monthlyBudgetsState = {};
+        let investmentsState = [];
+        let currentMonthView = new Date().toISOString().substring(0, 7);
+        let isEditingLimits = false;
+        let chartInstances = {};
+
+        const APRIL_BACKUP = [{"id": 1777467969989, "date": "2026-04-29", "merchant": "산딸기, 계란", "amount": 37800, "category": "쿠팡", "type": "expense"}, {"id": 1777467954081, "date": "2026-04-29", "merchant": "카츠큐브", "amount": 16000, "category": "외식", "type": "expense"}, {"id": 1777382527105, "date": "2026-04-28", "merchant": "Lucas Blueberry", "amount": 61000, "category": "쿠팡", "type": "expense"}, {"id": 1777376663017, "date": "2026-04-28", "merchant": "과일", "amount": 23900, "category": "쿠팡", "type": "expense"}, {"id": 1777373922174, "date": "2026-04-28", "merchant": "새벽집", "amount": 16000, "category": "외식", "type": "expense"}, {"id": 1777373908518, "date": "2026-04-28", "merchant": "유니클로", "amount": 14809, "category": "쇼핑", "type": "expense"}, {"id": 1777349969948, "date": "2026-04-28", "merchant": "유니클로", "amount": 19900, "category": "쇼핑"}, {"id": 1777345870025, "date": "2026-04-28", "merchant": "네이버 넷플 멤버십", "amount": 8000, "category": "Subscription"}, {"id": 1777291533281, "date": "2026-04-27", "merchant": "컬리", "amount": 22087, "category": "식비"}, {"id": 1777290196012, "date": "2026-04-27", "merchant": "배달", "amount": 15784, "category": "외식"}, {"id": 1777281441781, "date": "2026-04-27", "merchant": "정형외과", "amount": 189800, "category": "의료비"}, {"id": 1777281413726, "date": "2026-04-13", "merchant": "인터넷 요금", "amount": 19250, "category": "교통/통신비"}, {"id": 1777281196444, "date": "2026-04-20", "merchant": "핸드폰 요금", "amount": 57870, "category": "교통/통신비"}, {"id": 1777270983305, "date": "2026-04-25", "merchant": "유니클로", "amount": 32900, "category": "쇼핑"}, {"id": 1777270962219, "date": "2026-04-27", "merchant": "유니클로", "amount": 29900, "category": "쇼핑"}, {"id": 1777270918056, "date": "2026-04-27", "merchant": "컬리 멤버십", "amount": 1900, "category": "Subscription"}, {"id": 1777270533182, "date": "2026-04-27", "merchant": "닥터에디션 영양제", "amount": 80000, "category": "의료비"}, {"id": 1777213107480, "date": "2026-04-26", "merchant": "배달-도스타코스", "amount": 45083, "category": "외식"}, {"id": 1777213079058, "date": "2026-04-25", "merchant": "피어 커피", "amount": 17100, "category": "외식"}, {"id": 1777213054496, "date": "2026-04-26", "merchant": "과일", "amount": 9900, "category": "쿠팡"}, {"id": 1777213009496, "date": "2026-04-26", "merchant": "킴스클럽", "amount": 66370, "category": "식비"}, {"id": 1777212971386, "date": "2026-04-26", "merchant": "Apple Services", "amount": 20441, "category": "Subscription"}, {"id": 1777212874655, "date": "2026-04-26", "merchant": "노브랜드", "amount": 29780, "category": "식비"}, {"id": 1777212841934, "date": "2026-04-26", "merchant": "파리크라상", "amount": 36780, "category": "외식"}, {"id": 1776949897311, "date": "2026-04-23", "merchant": "과일", "amount": 27500, "category": "쿠팡"}, {"id": 1776947981177, "date": "2026-04-23", "merchant": "정형외과", "amount": 167000, "category": "의료비"}, {"id": 1618033990000, "date": "2026-04-06", "merchant": "스타벅스", "amount": 6500, "category": "식비"}, {"id": 1775975260116, "date": "2026-04-12", "merchant": "스타벅스", "amount": 10000, "category": "식비"}, {"id": 1775975257377, "date": "2026-04-11", "merchant": "파리크라상", "amount": 15000, "category": "공과금"}, {"id": 1775975257314, "date": "2026-04-11", "merchant": "과일 장", "amount": 35460, "category": "공과금"}, {"id": 1775975476047, "date": "2026-04-09", "merchant": "와인", "amount": 68000, "category": "공과금"}, {"id": 1775702509708, "date": "2026-04-08", "merchant": "정육점 고기", "amount": 30000, "category": "식비"}, {"id": 1775702508125, "date": "2026-04-08", "merchant": "컬리", "amount": 20898, "category": "식비"}, {"id": 1775702505892, "date": "2026-04-08", "merchant": "과일", "amount": 33000, "category": "공과금"}, {"id": 1775702510501, "date": "2026-04-06", "merchant": "배달", "amount": 26000, "category": "외식"}, {"id": 1775702505091, "date": "2026-04-08", "merchant": "세탁비", "amount": 19100, "category": "공과금"}, {"id": 1775702503648, "date": "2026-04-06", "merchant": "산부인과", "amount": 32000, "category": "의료비"}, {"id": 1775702504714, "date": "2026-04-06", "merchant": "산부인과 영양제", "amount": 99000, "category": "의료비"}, {"id": 1775702512068, "date": "2026-04-06", "merchant": "녹차", "amount": 30616, "category": "식비"}, {"id": 1775702512224, "date": "2026-04-05", "merchant": "쉐이크쉑", "amount": 6900, "category": "외식"}, {"id": 1775702506244, "date": "2026-04-03", "merchant": "오어옷", "amount": 103386, "category": "쇼핑"}, {"id": 1775702503788, "date": "2026-04-04", "merchant": "커피", "amount": 16000, "category": "외식"}, {"id": 1775702509567, "date": "2026-04-03", "merchant": "김수사 스시", "amount": 50000, "category": "외식"}, {"id": 1775703153505, "date": "2026-04-05", "merchant": "배달", "amount": 14507, "category": "외식"}, {"id": 1775703193450, "date": "2026-04-01", "merchant": "과일", "amount": 48000, "category": "쿠팡"}, {"id": 1775703193823, "date": "2026-04-01", "merchant": "배달", "amount": 16000, "category": "외식"}, {"id": 1775791468701, "date": "2026-04-09", "merchant": "병원", "amount": 50000, "category": "의료비"}, {"id": 1775791475315, "date": "2026-04-09", "merchant": "과일", "amount": 35000, "category": "쿠팡"}, {"id": 1776058311425, "date": "2026-04-12", "merchant": "올리브영", "amount": 30450, "category": "쇼핑"}, {"id": 1776081471462, "date": "2026-04-13", "merchant": "과일", "amount": 50000, "category": "쿠팡"}, {"id": 1776081471533, "date": "2026-04-13", "merchant": "고기", "amount": 34000, "category": "식비"}, {"id": 1776331265284, "date": "2026-04-16", "merchant": "정형외과", "amount": 175000, "category": "의료비"}, {"id": 1776331269338, "date": "2026-04-16", "merchant": "과일", "amount": 29970, "category": "쿠팡"}, {"id": 1776331270922, "date": "2026-04-16", "merchant": "산부인과", "amount": 34000, "category": "의료비"}, {"id": 1776429132217, "date": "2026-04-17", "merchant": "과일", "amount": 98800, "category": "쿠팡"}, {"id": 1776429134788, "date": "2026-04-17", "merchant": "배달", "amount": 29558, "category": "외식"}, {"id": 1776429374237, "date": "2026-04-17", "merchant": "선호영양제", "amount": 80000, "category": "의료비"}, {"id": 1776429429578, "date": "2026-04-17", "merchant": "룰루레몬", "amount": 129000, "category": "쇼핑"}, {"id": 1776429517986, "date": "2026-04-17", "merchant": "유니클로", "amount": 40000, "category": "쇼핑"}, {"id": 1776692338360, "date": "2026-04-20", "merchant": "정형외과", "amount": 167000, "category": "의료비"}, {"id": 1776692343506, "date": "2026-04-20", "merchant": "산부인과", "amount": 28000, "category": "의료비"}, {"id": 1776692453970, "date": "2026-04-20", "merchant": "네이비카운티", "amount": 68900, "category": "쇼핑"}, {"id": 1776695897941, "date": "2026-04-20", "merchant": "과일", "amount": 22000, "category": "쿠팡"}, {"id": 1776700219890, "date": "2026-04-21", "merchant": "룰루레몬", "amount": 33660, "category": "쇼핑"}, {"id": 1776749788786, "date": "2026-04-21", "merchant": "Economist", "amount": 139950, "category": "Subscription"}, {"id": 1776918144102, "date": "2026-04-22", "merchant": "치과", "amount": 18500, "category": "의료비"}, {"id": 1776918136230, "date": "2026-04-22", "merchant": "디팰 주차비", "amount": 21000, "category": "교통/통신비"}];
+
+        const DEFAULT_BUDGET = {
+            totalLimit: 4000000,
+            categories: [
+                { name: '주거비', limit: 1500000, colorHex: '#6366F1' },
+                { name: '식비', limit: 500000, colorHex: '#0EA5E9' },
+                { name: '외식', limit: 300000, colorHex: '#EF4444' },
+                { name: '교통비', limit: 300000, colorHex: '#64748B' },
+                { name: '여가비', limit: 200000, colorHex: '#F59E0B' },
+                { name: '공과금', limit: 200000, colorHex: '#10B981' },
+                { name: '의료비', limit: 100000, colorHex: '#F97316' },
+                { name: '쇼핑', limit: 200000, colorHex: '#ec4899' },
+                { name: '기타', limit: 400000, colorHex: '#475569' }
+            ]
+        };
+
+        // --- BOOTSTRAP ---
+        async function bootstrap() {
+            try {
+                dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                dbClient.auth.onAuthStateChange(async (event, session) => {
+                    console.log("[Auth] Event:", event);
+                    if (session) {
+                        currentUser = session.user;
+                        document.getElementById('auth-overlay').style.display = 'none';
+                        document.getElementById('user-display').textContent = currentUser.email;
+                        await loadData();
+                        refreshAllUI();
+                    } else {
+                        currentUser = null;
+                        document.getElementById('auth-overlay').style.display = 'flex';
+                    }
+                });
+
+                // Navigation
+                document.querySelectorAll('.nav-item').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const view = btn.getAttribute('data-view');
+                        switchView(view);
+                    });
+                });
+
+                // Hide loader after a delay
+                setTimeout(() => {
+                    document.getElementById('loading-fallback').style.opacity = '0';
+                    setTimeout(() => document.getElementById('loading-fallback').style.display = 'none', 500);
+                }, 1000);
+
+            } catch (e) {
+                console.error("Bootstrap failed:", e);
+                alert("App failed to start. See console.");
+            }
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
+            document.getElementById(viewId).style.display = 'block';
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll(`.nav-item[data-view="${viewId}"]`).forEach(n => n.classList.add('active'));
+            document.getElementById('view-title').textContent = viewId.charAt(0).toUpperCase() + viewId.slice(1);
+            
+            // Toggle month nav visibility
+            document.getElementById('global-month-nav').style.display = (viewId === 'budget') ? 'flex' : 'none';
+            if (viewId === 'budget') document.getElementById('view-title').style.display = 'none';
+            else document.getElementById('view-title').style.display = 'block';
+
+            refreshAllUI();
+        }
+
+        // --- DATA LAYER ---
+        async function loadData() {
+            if (!currentUser) return;
+            try {
+                const { data, error } = await dbClient.from('finance_storage').select('state').eq('user_id', currentUser.id).maybeSingle();
+                if (error) throw error;
+                
+                let state = (data && data.state) || { transactionsState: [], monthlyBudgetsState: {}, investmentsState: [] };
+                
+                // IRONCLAD MERGE: Always ensure April Backup exists
+                const existingIds = new Set(state.transactionsState.map(tx => tx.id));
+                let added = 0;
+                APRIL_BACKUP.forEach(tx => {
+                    if (!existingIds.has(tx.id)) {
+                        state.transactionsState.push(tx);
+                        added++;
+                    }
+                });
+                
+                if (added > 0) {
+                    console.log(`[Rescue] Injected ${added} transactions.`);
+                    // Save back to cloud to lock it in
+                    await dbClient.from('finance_storage').upsert({ user_id: currentUser.id, state: state });
+                }
+
+                transactionsState = state.transactionsState || [];
+                monthlyBudgetsState = state.monthlyBudgetsState || {};
+                investmentsState = state.investmentsState || [];
+
+                console.log("[Data] Loaded", transactionsState.length, "transactions.");
+            } catch (e) {
+                console.error("Load failed:", e);
+            }
+        }
+
+        async function saveData() {
+            if (!currentUser) return;
+            const state = {
+                transactionsState,
+                monthlyBudgetsState,
+                investmentsState,
+                lastUpdated: Date.now()
+            };
+            try {
+                await dbClient.from('finance_storage').upsert({ user_id: currentUser.id, state: state });
+                console.log("[Data] Saved to cloud.");
+            } catch (e) {
+                console.error("Save failed:", e);
+            }
+        }
+
+        // --- UI REFRESH ---
+        function refreshAllUI() {
+            renderDashboard();
+            renderBudget();
+            renderInvestments();
+            renderRetirement();
+            syncMonthLabels();
+        }
+
+        function syncMonthLabels() {
+            const [y, m] = currentMonthView.split('-');
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            document.getElementById('current-month-display').textContent = `${months[parseInt(m)-1]} ${y}`;
+            document.getElementById('budget-month-label').textContent = `${months[parseInt(m)-1]} ${y} Budget`;
+        }
+
+        function renderDashboard() {
+            const monthTx = transactionsState.filter(tx => tx.date && tx.date.startsWith(currentMonthView));
+            const spent = monthTx.reduce((sum, tx) => sum + (parseInt(tx.amount) || 0), 0);
+            
+            const budget = monthlyBudgetsState[currentMonthView] || DEFAULT_BUDGET;
+            const limit = budget.totalLimit || 4000000;
+            const left = limit - spent;
+
+            document.getElementById('dash-spent').textContent = `₩${spent.toLocaleString()}`;
+            document.getElementById('dash-left').textContent = `₩${left.toLocaleString()}`;
+            document.getElementById('dash-left').className = `bsc-value ${left < 0 ? 'negative' : 'positive'}`;
+
+            // Recent List
+            const recent = transactionsState.slice(-10).reverse();
+            const list = document.getElementById('dash-recent-list');
+            list.innerHTML = recent.map(tx => `
+                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--glass-border);">
+                    <div>
+                        <div style="font-weight:700;">${tx.merchant}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">${tx.category} • ${tx.date}</div>
+                    </div>
+                    <div style="font-weight:800;">₩${tx.amount.toLocaleString()}</div>
+                </div>
+            `).join('') || '<div style="color:var(--text-muted); text-align:center;">No recent data</div>';
+
+            renderBudgetChart(monthTx, budget);
+        }
+
+        function renderBudget() {
+            const container = document.getElementById('budget-category-list');
+            const budget = monthlyBudgetsState[currentMonthView] || DEFAULT_BUDGET;
+            const monthTx = transactionsState.filter(tx => tx.date && tx.date.startsWith(currentMonthView));
+
+            container.innerHTML = budget.categories.map((cat, idx) => {
+                const catSpent = monthTx.filter(tx => tx.category === cat.name).reduce((sum, tx) => sum + (parseInt(tx.amount) || 0), 0);
+                const pct = Math.min((catSpent / cat.limit) * 100, 100);
+                
+                let limitHtml = `₩${cat.limit.toLocaleString()}`;
+                if (isEditingLimits) {
+                    limitHtml = `<input type="number" value="${cat.limit}" onchange="updateCatLimit(${idx}, this.value)" style="width:100px; text-align:right;">`;
+                }
+
+                return `
+                    <div style="margin-bottom:1.5rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-weight:700; font-size:0.9rem;">
+                            <span>${cat.name}</span>
+                            <span>₩${catSpent.toLocaleString()} / ${limitHtml}</span>
+                        </div>
+                        <div style="height:8px; background:var(--bg-primary); border-radius:4px; overflow:hidden;">
+                            <div style="width:${pct}%; height:100%; background:${cat.colorHex};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Table
+            const tbody = document.getElementById('confirmed-tx-body');
+            tbody.innerHTML = monthTx.sort((a,b) => b.date.localeCompare(a.date)).map(tx => `
+                <tr class="li-row">
+                    <td>${tx.date}</td>
+                    <td>${tx.merchant}</td>
+                    <td style="text-align:right; font-weight:700;">₩${tx.amount.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderInvestments() {
+            const total = investmentsState.reduce((sum, inv) => sum + (inv.value || 0), 0);
+            document.getElementById('invest-total').textContent = `₩${total.toLocaleString()}`;
+            document.getElementById('dash-invest-value').textContent = `₩${total.toLocaleString()}`;
+        }
+
+        function renderRetirement() {
+            // Placeholder for now
+            document.getElementById('retirement-total-value').textContent = "₩1,240,000,000";
+        }
+
+        // --- CHARTING ---
+        function renderBudgetChart(monthTx, budget) {
+            const ctx = document.getElementById('budgetChart').getContext('2d');
+            if (chartInstances['budgetChart']) chartInstances['budgetChart'].destroy();
+            
+            const labels = budget.categories.map(c => c.name);
+            const data = budget.categories.map(cat => {
+                return monthTx.filter(tx => tx.category === cat.name).reduce((sum, tx) => sum + (parseInt(tx.amount) || 0), 0);
+            });
+            const colors = budget.categories.map(c => c.colorHex);
+
+            chartInstances['budgetChart'] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels,
+                    datasets: [{ data, backgroundColor: colors, borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+                }
+            });
+        }
+
+        // --- ACTIONS ---
+        window.handleSocialLogin = async (provider) => {
+            const { error } = await dbClient.auth.signInWithOAuth({
+                provider,
+                options: { redirectTo: window.location.origin + window.location.pathname }
+            });
+            if (error) alert(error.message);
+        };
+
+        window.handleLogout = async () => {
+            await dbClient.auth.signOut();
+            window.location.reload();
+        };
+
+        window.toggleTheme = () => {
+            const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', theme);
+        };
+
+        window.changeMonth = (delta) => {
+            let [y, m] = currentMonthView.split('-').map(Number);
+            m += delta;
+            if (m > 12) { m = 1; y++; }
+            if (m < 1) { m = 12; y--; }
+            currentMonthView = `${y}-${m.toString().padStart(2, '0')}`;
+            refreshAllUI();
+        };
+
+        window.showAddTransactionModal = () => {
+            const modal = document.getElementById('modal-tx-detail');
+            const catSelect = document.getElementById('tx-category');
+            const budget = monthlyBudgetsState[currentMonthView] || DEFAULT_BUDGET;
+            
+            catSelect.innerHTML = budget.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+            modal.style.display = 'flex';
+        };
+
+        window.saveTransactionFromModal = async () => {
+            const date = document.getElementById('tx-date').value;
+            const merchant = document.getElementById('tx-merchant').value;
+            const amount = parseInt(document.getElementById('tx-amount').value.replace(/,/g, '')) || 0;
+            const category = document.getElementById('tx-category').value;
+
+            if (!merchant || amount <= 0) return alert("Please enter valid data");
+
+            transactionsState.push({ id: Date.now(), date, merchant, amount, category });
+            await saveData();
+            document.getElementById('modal-tx-detail').style.display = 'none';
+            refreshAllUI();
+        };
+
+        window.updateCatLimit = (idx, val) => {
+            const budget = monthlyBudgetsState[currentMonthView] || JSON.parse(JSON.stringify(DEFAULT_BUDGET));
+            budget.categories[idx].limit = parseInt(val) || 0;
+            budget.totalLimit = budget.categories.reduce((s, c) => s + c.limit, 0);
+            monthlyBudgetsState[currentMonthView] = budget;
+            saveData();
+        };
+
+        window.forceRescueData = async () => {
+            if (!confirm("Rescue April Data (67 Transactions)? This will unshift them into your list if they don't exist.")) return;
+            
+            const existingIds = new Set(transactionsState.map(tx => tx.id));
+            let added = 0;
+            APRIL_BACKUP.forEach(tx => {
+                if (!existingIds.has(tx.id)) {
+                    transactionsState.push(tx);
+                    added++;
+                }
+            });
+            
+            if (added > 0) {
+                alert(`Successfully added ${added} transactions! Saving to cloud...`);
+                await saveData();
+                refreshAllUI();
+            } else {
+                alert("All backup transactions already exist in your list.");
+            }
+        };
+
+        // Start
+        bootstrap();
+
+    </script>
+</body>
+</html>
