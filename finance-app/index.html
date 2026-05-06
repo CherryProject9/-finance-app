@@ -6,138 +6,274 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="FinanceOS">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>Cherry Money - Premium Wealth Management</title>
     
-        // PWA Service Worker Registration disabled to fix cache issues
-        // if ('serviceWorker' in navigator) { ... }
-    <script>
-        console.log('[FinanceOS] Bootstrap v=120...');
-        window.onerror = function(msg, url, line, col, error) {
-            var div = document.createElement('div');
-            div.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,0,0,0.9);color:white;padding:20px;z-index:999999;font-family:monospace;font-size:14px;overflow:auto;';
-            div.innerHTML = '<h1>Critical Error</h1>' +
-                            '<p><b>Message:</b> ' + msg + '</p>' +
-                            '<p><b>URL:</b> ' + url + '</p>' +
-                            '<p><b>Line:</b> ' + line + ', <b>Col:</b> ' + col + '</p>' +
-                            '<pre>' + (error && error.stack || '') + '</pre>' +
-                            '<button onclick="location.reload()" style="background:white;color:black;padding:10px;border:none;border-radius:5px;margin-top:20px;">Reload App</button>';
-            if (document.body) {
-                document.body.appendChild(div);
-            } else {
-                document.write(div.outerHTML);
-            }
-            return false;
-        };
-    </script>
-    <title>FinanceOS - Premium Personal Finance</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=block" rel="stylesheet">
-    <link rel="stylesheet" href="styles_v2.css?v=2.0.0">
+    
+    <!-- CSS (Inlined from styles_v1.css) -->
     <style>
-        /* --- Login UI Styles --- */
-        #auth-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 9999999;
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --accent-primary: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --accent-secondary: #a855f7;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --positive: #10b981;
+            --negative: #E05252;
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+            --transition-fast: 0.15s ease;
+            --sidebar-width: 280px;
+            --nav-height-mobile: 60px;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+            --glass-blur: blur(8px);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #14151a;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* --- Global Resets & Layout --- */
+        * { margin: 0; padding: 0; box-sizing: border-box !important; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; overflow: hidden; background: var(--bg-primary); color: var(--text-primary); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        
+        .app-container { display: flex; height: 100vh; width: 100%; }
+        
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--glass-border);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Inter', sans-serif;
+            flex-direction: column;
+            z-index: 100;
         }
-        .auth-card {
-            background: #111;
-            padding: 40px;
-            border-radius: 24px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.05);
+        .logo { padding: 2rem 1.5rem; display: flex; align-items: center; gap: 12px; }
+        .logo-icon { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); }
+        .logo h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+        
+        .nav-links { list-style: none; padding: 0 1rem; flex: 1; }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+            color: var(--text-muted); text-decoration: none; border-radius: 12px;
+            margin-bottom: 4px; transition: 0.2s; font-weight: 600; font-size: 0.9rem;
         }
-        .auth-logo {
-            font-size: 32px;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 8px;
-            letter-spacing: -1px;
-        }
-        .auth-subtitle {
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 32px;
-        }
-        .auth-button {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            transition: all 0.2s ease;
-        }
+        .nav-item svg { width: 18px; height: 18px; opacity: 0.7; }
+        .nav-item.active { background: var(--accent-glow); color: var(--accent-primary); }
+        .nav-item.active svg { opacity: 1; }
+        .nav-item:hover:not(.active) { background: rgba(0,0,0,0.02); color: var(--text-primary); }
+
+        .user-profile { padding: 1.5rem; border-top: 1px solid var(--glass-border); display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 12px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; }
+
+        /* Main Content */
+        .main-content { flex: 1; overflow-y: auto; padding: 0; background: var(--bg-primary); position: relative; }
+        .header { padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--bg-primary); z-index: 50; }
+        .header h1 { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.04em; }
+
+        .view-section { padding: 0 2rem 3rem; display: none; }
+        .view-section.active { display: block; }
+
+        /* Cards & Metrics */
+        .card { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: 1.5rem; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); margin-bottom: 1.5rem; }
+        .glass { background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); }
+        
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+        .metric-value { font-size: 1.75rem; font-weight: 900; letter-spacing: -0.04em; margin: 0.5rem 0; }
+        .metric-subtitle { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+
+        .budget-summary-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .budget-summary-card { background: var(--bg-secondary); border-radius: 20px; padding: 1.25rem 1.5rem; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
+        .bsc-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+        .bsc-value { font-size: 1.75rem; font-weight: 900; letter-spacing: -0.03em; }
+        .positive { color: var(--positive); }
+        .negative { color: var(--negative); }
+
+        /* Tables & Lists */
+        .li-table { width: 100%; border-collapse: collapse; }
+        .li-row { border-bottom: 1px solid var(--glass-border); transition: 0.2s; position: relative; overflow: hidden; }
+        .li-row:hover { background: rgba(99, 102, 241, 0.03); }
+        .budget-date-cell { padding: 1rem 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 500; width: 60px; }
+        .budget-merchant-cell { padding: 1rem 0; display: flex; align-items: center; gap: 12px; }
+        .li-color-bar { width: 4px; height: 32px; border-radius: 2px; flex-shrink: 0; }
+        .li-merchant { font-weight: 700; font-size: 1rem; color: var(--text-primary); }
+        .li-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+        .budget-amount-cell { text-align: right; font-weight: 800; font-size: 1.1rem; padding-right: 1rem; }
+        .li-badge { padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; }
+
+        /* Auth UI */
+        #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999999; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: #111; padding: 40px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .auth-logo { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 8px; letter-spacing: -1px; }
+        .auth-button { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px; transition: 0.2s; }
         .btn-google { background: #fff; color: #000; }
         .btn-kakao { background: #FEE500; color: #3C1E1E; }
-        .btn-email { background: #222; color: #fff; border: 1px solid #333; }
-        .auth-button:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        /* Mobile */
+        .mobile-nav { display: none; }
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .mobile-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: var(--bg-secondary); border-top: 1px solid var(--glass-border); z-index: 1000; justify-content: space-around; align-items: center; }
+            .mobile-nav .nav-item { margin-bottom: 0; padding: 10px; }
+            .main-content { padding-bottom: 70px; }
+            .header { padding: 1rem 1.5rem; }
+            .view-section { padding: 0 1.25rem 2rem; }
+            .budget-summary-row { gap: 10px; }
+            .bsc-value { font-size: 1.25rem; }
+            .metric-value { font-size: 1.5rem; }
+        }
+
+        /* Buttons & Forms */
+        .btn { border: none; border-radius: 12px; padding: 10px 20px; font-weight: 700; cursor: pointer; transition: 0.2s; font-family: inherit; }
+        .btn-primary { background: var(--accent-primary); color: white; box-shadow: 0 4px 12px var(--accent-glow); }
+        .btn-icon { background: rgba(0,0,0,0.03); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+        .modern-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--bg-primary); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        .modal-content { background: var(--bg-secondary); border-radius: 24px; padding: 2rem; width: 90%; max-width: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .premium-form-row { margin-bottom: 1.25rem; }
+        .premium-form-row label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+
+        /* Progress Bar */
+        .cat-progress-track { width: 100%; height: 8px; background: var(--bg-primary); border-radius: 4px; overflow: hidden; margin: 10px 0; }
+        .cat-progress-bar { height: 100%; border-radius: 4px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Toast */
+        #toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 20000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: var(--text-primary); color: var(--bg-primary); padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: toastIn 0.3s forwards; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Chart Placeholder */
+        .chart-container { position: relative; width: 100%; height: 100%; }
         
-        .auth-divider {
-            height: 1px;
-            background: #222;
-            margin: 24px 0;
-            position: relative;
-        }
-        .auth-divider::after {
-            content: 'OR';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #111;
-            padding: 0 12px;
-            color: #444;
-            font-size: 10px;
-            font-weight: 700;
-        }
-        .auth-input {
-            width: 100%;
-            padding: 12px 16px;
-            background: #222;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #fff;
-            margin-bottom: 12px;
-            font-size: 14px;
-        }
-        .auth-footer {
-            margin-top: 24px;
-            color: #666;
-            font-size: 12px;
-        }
-        .auth-link {
-            color: #6366F1;
+        /* v101: Fallback Pointer events none */
+        #loading-fallback { pointer-events: none !important; }
+
+        /* --- OCR Receipt Scanner Styles --- */
+        .drop-zone {
+            border: 2px dashed var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem 1.5rem;
+            text-align: center;
             cursor: pointer;
-            text-decoration: underline;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-secondary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
         }
-        #auth-error {
-            color: #ef4444;
-            font-size: 12px;
-            margin-bottom: 12px;
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent-primary);
+            background: var(--accent-glow);
+            transform: translateY(-2px);
+        }
+        .drop-zone svg {
+            width: 40px; height: 40px;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
+        }
+        .drop-zone:hover svg { color: var(--accent-primary); }
+        .drop-zone p { font-size: 0.9rem; font-weight: 700; }
+        .drop-zone span { font-size: 0.75rem; color: var(--text-muted); }
+
+        #ocr-loading {
+            padding: 2rem;
+            text-align: center;
             display: none;
         }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        #ocr-preview {
+            display: none;
+            margin-bottom: 1.5rem;
+        }
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+        }
+        .preview-table th {
+            text-align: left;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.02);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .preview-table td {
+            padding: 12px 16px;
+            border-top: 1px solid var(--glass-border);
+            font-size: 0.9rem;
+        }
+        .preview-table input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            width: 100%;
+            font-family: inherit;
+            font-size: inherit;
+            padding: 4px 0;
+        }
+        .preview-table input:focus {
+            outline: none;
+            background: rgba(99, 102, 241, 0.1);
+        }
     </style>
+
     <script>
         (function() {
             var savedTheme = localStorage.getItem('financeOS_theme') || 'light';
@@ -148,133 +284,122 @@
     </script>
 </head>
 <body data-active-view="dashboard">
-    <!-- Auth Overlay -->
-    <div id="auth-overlay" style="display: flex; background: #000; position: fixed; inset: 0; z-index: 9999999; align-items: center; justify-content: center;">
-        <div class="auth-card">
-            <div class="auth-logo">FinanceOS</div>
-            <div class="auth-subtitle">Secure personal wealth management</div>
-            
-            <div id="auth-error"></div>
+    <!-- Version Marker for Cache Debugging -->
+    <div style="position:fixed; top:0; left:0; right:0; background:#6366f1; color:white; text-align:center; padding:4px; font-size:10px; font-weight:900; z-index:1000000; pointer-events:none;">
+        Cherry Money v202-OCR (LATEST) - If you see this, the app is updated.
+    </div>
 
-            <button id="btn-google-link" onclick="window.handleOAuth('google')" class="auth-button btn-google" style="border: none; outline: none; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%;">
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" style="display: flex;">
+        <div class="auth-card">
+            <div class="auth-logo">Cherry Money</div>
+            <p style="color: #666; margin-bottom: 32px; font-size: 14px;">Premium Wealth Management</p>
+            
+            <div id="auth-error" style="color: #ef4444; font-size: 12px; margin-bottom: 12px; display: none;"></div>
+
+            <button onclick="window.handleSocialLogin('google')" class="auth-button btn-google">
                 <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
                 Continue with Google
             </button>
-            <button id="btn-kakao-link" onclick="window.handleOAuth('kakao')" class="auth-button btn-kakao" style="border: none; outline: none; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%;">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2.5C5.858 2.5 2.5 5.092 2.5 8.292c0 2.058 1.4 3.867 3.517 4.908l-.892 3.267c-.05.183.158.333.3.233l3.867-2.558C9.558 14.125 9.775 14.133 10 14.133c4.142 0 7.5-2.592 7.5-5.792S14.142 2.5 10 2.5z"/></svg>
+            <button onclick="window.handleSocialLogin('kakao')" class="auth-button btn-kakao">
                 Continue with Kakao
             </button>
             
-            <div class="auth-divider"></div>
-            
-            <div id="email-login-form">
-                <input type="email" id="auth-email" class="auth-input" placeholder="Email address">
-                <input type="password" id="auth-password" class="auth-input" placeholder="Password">
-                <button class="auth-button btn-email" onclick="window.handleEmailAuth('login')">Sign In</button>
-                <div class="auth-footer">
-                    Don't have an account? <span class="auth-link" onclick="window.handleEmailAuth('signup')">Sign Up</span>
-                </div>
+            <div style="height: 1px; background: #222; margin: 24px 0; position: relative;">
+                <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 0 12px; color: #444; font-size: 10px; font-weight: 700;">OR</span>
             </div>
-        </div>
-    </div>
-    <style>
-        .app-container { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-        body.authenticated .app-container { opacity: 1; pointer-events: auto; }
-        body.authenticated #auth-overlay { display: none !important; }
-    </style>
-    <div id="toast-container"></div>
-    
-    <!-- v101: Fallback now has pointer-events: none to ensure it NEVER blocks clicks -->
-    <div id="loading-fallback" style="position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;font-family:sans-serif;z-index:9999999;background:#0f172a;pointer-events:none;transition:opacity 0.5s ease;">
-        <div style="text-align:center; color: white;">
-            <div style="font-size:24px;margin-bottom:10px;">FinanceOS</div>
-            <div style="font-size:14px;opacity:0.6;">Initializing... (v124)</div>
+            
+            <input type="email" id="auth-email" class="modern-input" placeholder="Email address" style="background: #222; border: 1px solid #333; color: #fff; margin-bottom: 12px;">
+            <input type="password" id="auth-password" class="modern-input" placeholder="Password" style="background: #222; border: 1px solid #333; color: #fff; margin-bottom: 24px;">
+            <button class="auth-button" onclick="window.handleEmailAuth('login')" style="background: var(--accent-primary); color: #fff; margin-bottom: 0;">Sign In</button>
+            <p style="margin-top: 16px; font-size: 12px; color: #666;">Don't have an account? <span style="color: var(--accent-primary); cursor: pointer; text-decoration: underline;" onclick="window.handleEmailAuth('signup')">Sign Up</span></p>
         </div>
     </div>
 
-    <div class="app-container">
+    <!-- v101: Fallback -->
+    <div id="loading-fallback" style="position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:9999999;background:#0f172a;">
+        <div style="text-align:center; color: white;">
+            <div style="font-size:24px;margin-bottom:10px;font-weight:800;">Cherry Money</div>
+            <div style="font-size:14px;opacity:0.6;">Stabilizing State... (v202-OCR)</div>
+        </div>
+    </div>
+
+    <div class="app-container" style="opacity: 0; transition: opacity 0.3s ease;">
         <!-- Sidebar Navigation (Desktop) -->
-        <aside class="sidebar desktop-only">
+        <aside class="sidebar">
             <div class="logo">
                 <div class="logo-icon"></div>
-                <h1>FinanceOS</h1>
+                <h1>Cherry Money</h1>
             </div>
             
             <ul class="nav-links">
-                <li><a href="#" class="nav-item active" data-view="dashboard" onclick="window.triggerAppAction('nav_to', 'dashboard')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <li><a href="#" class="nav-item active" data-view="dashboard" onclick="window.switchView('dashboard')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                     Dashboard</a>
                 </li>
-                <li><a href="#" class="nav-item" data-view="budget" onclick="window.triggerAppAction('nav_to', 'budget')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                <li><a href="#" class="nav-item" data-view="budget" onclick="window.switchView('budget')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                     Budget</a>
                 </li>
-                <li><a href="#" class="nav-item" data-view="investments" onclick="window.triggerAppAction('nav_to', 'investments')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                <li><a href="#" class="nav-item" data-view="investments" onclick="window.switchView('investments')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                     Investments</a>
                 </li>
-                <li><a href="#" class="nav-item" data-view="retirement" onclick="window.triggerAppAction('nav_to', 'retirement')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <li><a href="#" class="nav-item" data-view="retirement" onclick="window.switchView('retirement')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                     Retirement</a>
                 </li>
-                <li><a href="#" class="nav-item" data-view="settings" onclick="window.triggerAppAction('nav_to', 'settings')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <li><a href="#" class="nav-item" data-view="settings" onclick="window.switchView('settings')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     Settings</a>
                 </li>
             </ul>
             
             <div class="user-profile">
                 <div class="avatar">DY</div>
-                <div class="user-info">
-                    <div class="user-name">Dawoon</div>
-                    <div class="user-tier">Premium Plan</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 700; font-size: 0.85rem;" id="user-name-display">Dawoon</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">Premium Account</div>
                 </div>
+                <button class="btn-icon" onclick="window.handleLogout()" title="Logout" style="color: #ef4444;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </button>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <main class="main-content" id="main-scroll-container" style="pointer-events: auto !important;">
-            <!-- Unified Global Header -->
-            <header class="header" id="main-header">
-                <div class="header-left desktop-only">
+        <main class="main-content">
+            <header class="header">
+                <div style="display:flex; align-items:center; gap:8px;">
                     <h1 id="view-title">Dashboard</h1>
+                    <span style="font-size: 10px; background: var(--accent-glow); color: var(--accent-primary); padding: 2px 6px; border-radius: 4px; font-weight: 800;">v202-OCR</span>
                 </div>
                 
-                <!-- Month Navigation (Direct child for better stacking control) -->
-                <div id="global-month-nav" class="budget-month-nav">
-                    <button class="btn-nav-arrow" id="prev-month" onclick="window.triggerAppAction('change_month', -1)">
+                <div id="global-month-nav" style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="btn-icon" onclick="window.changeMonth(-1)">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="15 18 9 12 15 6"></polyline></svg>
                     </button>
-                    <span id="current-month-display" class="budget-month-label">April 2026</span>
-                    <button class="btn-nav-arrow" id="next-month" onclick="window.triggerAppAction('change_month', 1)">
+                    <span id="current-month-display" style="font-weight: 800; font-size: 0.95rem; min-width: 100px; text-align: center;">April 2026</span>
+                    <button class="btn-icon" onclick="window.changeMonth(1)">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </button>
                 </div>
 
-                <div class="header-right">
-                    <button class="btn btn-icon" id="btn-upload-header-proxy" title="OCR Upload" onclick="window.triggerAppAction('ocr_upload')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-icon" id="btn-upload-header-proxy" title="OCR Upload" onclick="window.triggerAppAction('ocr_upload')" style="background: #6366f1 !important; color: white !important; border: none; padding: 10px 20px; border-radius: 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18" style="stroke: white;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <span style="font-size: 12px; font-weight: 900;">SCAN RECEIPT</span>
                     </button>
-                    <button class="btn btn-icon" id="theme-toggle-proxy" title="Toggle Theme" onclick="window.triggerAppAction('toggle_theme')">
-                        <svg id="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                        <svg id="theme-icon-moon" style="display:none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <button class="btn btn-icon" onclick="window.rescueMayData()" title="Fix May Data" style="background: #ef4444; color: white; border: none; padding: 10px;">🛠️ FIX</button>
+                    <button class="btn btn-icon" onclick="window.toggleTheme()" title="Toggle Theme">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
                     </button>
-                    <button class="btn btn-icon" title="Notifications" onclick="window.triggerAppAction('show_alerts')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                    </button>
-                    <button class="btn btn-primary" id="btn-add-transaction-header" onclick="window.triggerAppAction('add_entry')" style="padding: 0; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" width="26" height="26"><line x1="12" y1="3" x2="12" y2="21"></line><line x1="3" y1="12" x2="21" y2="12"></line></svg>
-                    </button>
-                    <!-- Logout Button -->
-                    <button class="btn btn-icon" title="Logout" onclick="window.handleLogout()" style="color: #ef4444; margin-left: 8px;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    </button>
+                    <button class="btn btn-primary" onclick="window.showAddTransactionModal()" style="padding: 10px 24px;">+ Add</button>
                 </div>
             </header>
 
             <!-- Dashboard View -->
             <section id="dashboard" class="view-section active">
-                <!-- ── Summary Cards (Side-by-Side like Budget Page) ── -->
                 <div class="budget-summary-row">
                     <div class="budget-summary-card">
                         <div class="bsc-label">잔여 예산 (Budget Left)</div>
@@ -288,393 +413,746 @@
 
                 <div class="metrics-grid">
                     <div class="card glass">
-                        <div class="card-header">
-                            <h3>투자 (Investments)</h3>
-                        </div>
-                        <div class="card-body">
-                            <h2 class="metric-value" id="dashboard-invest-value">₩0</h2>
-                            <p class="metric-subtitle" id="dash-investments-subtitle">준비 중...</p>
-                        </div>
+                        <div class="metric-subtitle">Investments</div>
+                        <h2 class="metric-value" id="dashboard-invest-value">₩0</h2>
+                        <p id="dash-invest-sub" style="font-size: 0.75rem; color: var(--text-muted);">Total Portfolio Value</p>
+                    </div>
+                    <div class="card glass">
+                        <div class="metric-subtitle">Savings Rate</div>
+                        <h2 class="metric-value positive">64.2%</h2>
+                        <p style="font-size: 0.75rem; color: var(--text-muted);">Against target 50%</p>
                     </div>
                 </div>
 
                 <div class="card glass mt-4">
-                    <h3>카테고리별 지출</h3>
-                    <div class="chart-container mt-4" style="height: 280px; position: relative;">
+                    <h3 style="margin-bottom: 1.5rem;">Spending by Category</h3>
+                    <div style="height: 300px;">
                         <canvas id="budgetChart"></canvas>
                     </div>
                 </div>
 
                 <div class="card glass mt-4">
-                    <h3>Net Worth Overview</h3>
-                    <div class="chart-container mt-4" style="height: 300px;">
-                        <canvas id="netWorthChart"></canvas>
+                    <h3>Recent Transactions</h3>
+                    <div id="dashboard-recent-list" style="margin-top: 1rem;">
+                        <!-- JS renders here -->
                     </div>
                 </div>
             </section>
 
             <!-- Budget View -->
             <section id="budget" class="view-section">
+                <!-- OCR Receipt Scanner UI -->
+                <div id="ocr-scanner-container" class="card glass" style="padding: 1.5rem; margin-bottom: 1.5rem; border: 2px solid var(--accent-glow);">
+                    <div id="drop-zone" class="drop-zone" onclick="document.getElementById('file-input').click()" style="margin-bottom: 0;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 48px; height: 48px; margin-bottom: 1rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <p style="font-size: 1.1rem; color: var(--accent-primary);">영수증 영수증 스캐너</p>
+                        <p style="font-size: 0.9rem; font-weight: 600;">이미지를 업로드하거나 드래그하세요</p>
+                        <span style="margin-top: 8px;">(OCR Receipt Scanner - Tesseract Engine)</span>
+                    </div>
 
-                <!-- (Redundant Top Bar removed in favor of Unified Header) -->
+                    <div id="ocr-loading" style="display: none; text-align: center; padding: 2rem 0;">
+                        <div class="spinner"></div>
+                        <p id="ocr-status" style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">영수증을 분석하고 있습니다...</p>
+                        <div class="progress-container" style="max-width: 300px; margin: 1.5rem auto;">
+                            <div id="ocr-progress" class="progress-bar"></div>
+                        </div>
+                        <span id="ocr-progress-text" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">0% 완료</span>
+                    </div>
 
+                    <div id="ocr-preview" style="display: none; margin-top: 1rem;">
+                        <div class="preview-header" style="background: var(--bg-primary); padding: 12px 16px; border-radius: 12px; margin-bottom: 1rem;">
+                            <h3 style="margin: 0; font-size: 1rem;">분석 결과 확인</h3>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn" onclick="window.cancelOCR()" style="padding: 6px 12px; font-size: 0.75rem; background: var(--bg-secondary);">취소</button>
+                                <button class="btn btn-primary" onclick="window.confirmOCR()" style="padding: 6px 12px; font-size: 0.75rem;">확인 및 추가</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="preview-table">
+                                <thead>
+                                    <tr>
+                                        <th>날짜</th>
+                                        <th>가맹점</th>
+                                        <th style="text-align: right;">금액</th>
+                                        <th>카테고리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="parsed-tx-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-                <!-- ── Summary Cards ─────────────────────────────── -->
                 <div class="budget-summary-row">
                     <div class="budget-summary-card">
-                        <div class="bsc-label">총 지출액 (Spent)</div>
+                        <div class="bsc-label">총 지출액 (Total Spent)</div>
                         <div class="bsc-value" id="budget-total-spent">₩0</div>
                     </div>
                     <div class="budget-summary-card">
-                        <div class="bsc-label">잔여 예산 (Left)</div>
-                        <div class="bsc-value positive" id="budget-remaining-value">₩0</div>
+                        <div class="bsc-label">잔여 예산 (Remaining)</div>
+                        <div class="bsc-value positive" id="budget-remaining">₩0</div>
                     </div>
                 </div>
 
-                <!-- ── Line Items ────────────────────────────────── -->
-                <div class="budget-section-card budget-transactions-card">
-                    <!-- Sort subheader -->
-                    <div class="li-sort-row">
-                        <button class="li-sort-btn active" id="sort-date" onclick="window.triggerAppAction('set_sort', 'date')">
-                            일시 <span id="sort-icon-date">▼</span> / 가맹점
+                <div class="card glass">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3>예산 관리</h3>
+                        <button class="btn btn-icon" onclick="isEditingLimits = !isEditingLimits; renderBudgetUI();">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="li-sort-btn" id="sort-amount" onclick="window.triggerAppAction('set_sort', 'amount')">
-                            금액 <span id="sort-icon-amount" style="opacity:0.3">↕</span>
-                        </button>
-                    </div>
-                    <!-- Transactions table (unchanged — JS renders into confirmed-tx-body) -->
-                    <div class="li-list-wrap">
-                        <table class="li-table">
-                            <tbody id="confirmed-tx-body">
-                                <!-- Transactions rendered here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ── Category Budgets ──────────────────────────── -->
-                <div class="budget-section-card">
-                    <div class="budget-section-header">
-                        <h3 class="budget-section-title">예산 관리</h3>
-                        <div class="budget-section-actions">
-                            <button class="btn-topbar-icon" onclick="window.triggerAppAction('menu_more')" title="Manage Categories">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                            </button>
-                        </div>
                     </div>
                     <div id="budget-category-list">
-                        <!-- Category rows rendered here -->
+                        <!-- JS renders here -->
+                    </div>
+                    <div style="margin-top: 1.5rem; text-align: center; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+                        <span style="font-size: 0.7rem; color: var(--text-muted); cursor: pointer; text-decoration: underline;" onclick="window.rescueMayData()">May 2026 데이터가 안 보이나요? (복구하기)</span>
                     </div>
                 </div>
-            </section>
-            
-            <!-- Category Drill-down View -->
-            <section id="category-detail" class="view-section">
-                <!-- Header (Simplified Focused Style) -->
-                <header class="header" style="margin-bottom: 1.25rem;">
-                    <div class="header-left">
-                        <button class="btn btn-icon" onclick="window.switchView('budget')" title="Back">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                        </button>
-                        <div style="display: flex; flex-direction: column; gap: 2px; margin-left: 8px;">
-                            <h1 id="cat-detail-name" style="font-size: 1.15rem; font-weight: 800; margin: 0; line-height: 1.2;">Category</h1>
-                            <p id="cat-detail-subtitle" style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin: 0;">Spending Details</p>
+
+                <div class="card glass">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3>상세 내역</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-icon" onclick="window.setSort('date')">📅</button>
+                            <button class="btn btn-icon" onclick="window.setSort('amount')">₩</button>
                         </div>
                     </div>
-                    <div class="header-right">
-                        <!-- Removed all global actions for focused view -->
-                    </div>
-                </header>
-
-
-                <!-- Category Summary Card -->
-                <div class="card premium-summary-card mb-4" style="padding: 1rem 1.25rem !important;">
-                    <div class="cat-summary-meta" style="margin-bottom: 0.15rem;">
-                        <span class="cat-summary-label" style="font-size: 0.65rem;">이번 달 지출 현황</span>
-                    </div>
-                    <h2 class="cat-detail-amount" id="cat-detail-spent-big" style="font-size: 1.35rem; letter-spacing: -0.03em; margin: 0.25rem 0 0.75rem 0 !important;">₩0 / ₩0</h2>
-                    <div class="cat-progress-track" style="margin-bottom: 0.4rem; height: 6px;">
-                        <div id="cat-detail-progress" class="cat-progress-bar"></div>
-                    </div>
-                    <p class="cat-summary-footer" id="cat-detail-status-text" style="font-size: 0.8rem; font-weight: 700;">예산 대비 0%</p>
-                </div>
-
-                <!-- Transaction List -->
-                <div class="budget-section-card budget-transactions-card">
-                    <div class="li-sort-row">
-                        <button class="li-sort-btn active" id="detail-sort-date" onclick="window.toggleDetailSort('date')" style="padding-left: 0.5rem;">
-                            일시 <span id="detail-sort-icon-date">▼</span> / 가맹점
-                        </button>
-                        <button class="li-sort-btn" id="detail-sort-amount" onclick="window.toggleDetailSort('amount')" style="margin-left: auto; width: 85px; justify-content: center;">
-                            금액 <span id="detail-sort-icon-amount" style="opacity:0.3">↕</span>
-                        </button>
-                    </div>
-                    <div class="li-list-wrap">
-                        <table class="li-table">
-                            <tbody id="cat-detail-tx-list"></tbody>
-                        </table>
-                    </div>
+                    <table class="li-table">
+                        <tbody id="confirmed-tx-body">
+                            <!-- JS renders here -->
+                        </tbody>
+                    </table>
                 </div>
             </section>
-
-
 
             <!-- Investments View -->
             <section id="investments" class="view-section">
-                <div class="metrics-grid mb-4">
-                    <div class="card glass">
-                        <div class="card-header">
-                            <h3>Total Portfolio</h3>
-                        </div>
-                        <div class="card-body">
-                            <h2 class="metric-value" id="portfolio-total-value">₩0</h2>
-                            <p class="metric-subtitle">Total Assets in KRW</p>
-                        </div>
-                    </div>
-                    <div class="card glass">
-                        <div class="card-header">
-                            <h3>Day Change</h3>
-                        </div>
-                        <div class="card-body">
-                            <h2 class="metric-value positive" id="portfolio-day-change">+0.00%</h2>
-                            <p class="metric-subtitle">Across all holdings</p>
-                        </div>
-                    </div>
+                <div class="card glass">
+                    <div class="metric-subtitle">Portfolio Overview</div>
+                    <h2 class="metric-value" id="portfolio-total">₩0</h2>
                 </div>
-
-                <div class="card glass mt-4">
-                    <div class="flex-between mb-4">
-                        <h3>Assets & Holdings</h3>
-                        <button class="btn btn-primary" onclick="window.triggerAppAction('add_asset')">+ Add Asset</button>
+                <div class="card glass">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3>Assets</h3>
+                        <button class="btn btn-primary" onclick="window.showAddAssetModal()">+ Add Asset</button>
                     </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Asset</th>
-                                    <th class="mobile-hide">Shares</th>
-                                    <th class="mobile-hide">Avg Cost</th>
-                                    <th>Price</th>
-                                    <th>Value</th>
-                                    <th>Return</th>
-                                </tr>
-                            </thead>
-                            <tbody id="investments-body">
-                                <!-- Assets rendered here -->
-                            </tbody>
-                        </table>
-                    </div>
+                    <table class="data-table" style="width: 100%; text-align: left;">
+                        <thead>
+                            <tr style="color: var(--text-muted); font-size: 0.8rem;">
+                                <th>Asset</th>
+                                <th>Shares</th>
+                                <th>Price</th>
+                                <th style="text-align: right;">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="investments-body"></tbody>
+                    </table>
                 </div>
             </section>
 
             <!-- Retirement View -->
             <section id="retirement" class="view-section">
-                <div class="retirement-container">
-                    <div class="card glass retirement-controls">
-                        <h3>Planning Assumptions</h3>
-                        <div class="premium-form-row">
-                            <label>Current Age</label>
-                            <input type="number" id="current-age" value="30" oninput="updateRetirementProjection()">
-                        </div>
-                        <div class="premium-form-row">
-                            <label>Retirement Age</label>
-                            <input type="number" id="retirement-age" value="65" oninput="updateRetirementProjection()">
-                        </div>
-                        <div class="premium-form-row">
-                            <label>Monthly Contribution (₩)</label>
-                            <input type="text" id="monthly-contribution" value="1,000,000" inputmode="numeric" oninput="formatCurrencyInput(this); updateRetirementProjection()">
-                        </div>
-                        <div class="premium-form-row">
-                            <label>Annual Return (%)</label>
-                            <input type="number" id="annual-return" value="7" step="0.5" oninput="updateRetirementProjection()">
-                        </div>
-                    </div>
-                    <div class="card glass retirement-chart-card">
-                        <h3>Projection: Wealth at Retirement</h3>
-                        <div class="chart-container">
-                            <canvas id="retirementChart"></canvas>
-                        </div>
-                        <div class="flex-between mt-4">
-                            <div>
-                                <p class="metric-subtitle">Estimated Total Value</p>
-                                <h2 class="metric-value" id="retirement-total-value">₩0</h2>
-                            </div>
-                        </div>
+                <div class="card glass">
+                    <h3>Retirement Projection</h3>
+                    <div class="metric-value" id="retirement-total">₩1,240,000,000</div>
+                    <div style="height: 300px; margin-top: 2rem;">
+                        <canvas id="retirementChart"></canvas>
                     </div>
                 </div>
             </section>
 
             <!-- Settings View -->
             <section id="settings" class="view-section">
-                <div class="card glass" style="max-width: 600px; margin: 0 auto;">
-                    <h3>Custom Categorization Rules</h3>
-                    <p class="metric-subtitle">Transactions matching these patterns will be automatically assigned to categories.</p>
-                    <div class="table-responsive mt-4">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Pattern</th>
-                                    <th>Category</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rules-body">
-                                <!-- Rules rendered here -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-4 pt-4" style="border-top: 1px solid var(--glass-border);">
-                        <h5>Add New Rule</h5>
-                        <div class="flex-between gap-2 mt-2">
-                            <input type="text" id="new-rule-pattern" class="modern-input" placeholder="e.g. Starbucks" style="flex: 1;">
-                            <select id="new-rule-category" class="modern-input" style="flex: 1;">
-                                <!-- Categories populated here -->
-                            </select>
-                            <button class="btn btn-premium-primary" onclick="window.triggerAppAction('add_rule')">Add</button>
-                        </div>
-                    </div>
+                <div class="card glass" style="max-width: 500px; margin: 0 auto;">
+                    <h3>Rescue Tools</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">If your data is missing, click below to force-restore the April backup.</p>
+                    <button class="btn" onclick="window.forceRescueData()" style="width: 100%; background: #ef4444; color: white; padding: 16px;">RESCUE APRIL DATA (67 TX)</button>
                 </div>
             </section>
         </main>
-
-        <!-- Mobile Bottom Navigation -->
-        <nav class="mobile-nav">
-            <a href="#" class="nav-item active" data-view="dashboard" onclick="window.triggerAppAction('nav_to', 'dashboard')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-            </a>
-            <a href="#" class="nav-item" data-view="budget" onclick="window.triggerAppAction('nav_to', 'budget')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            </a>
-            <a href="#" class="nav-item" data-view="retirement" onclick="window.triggerAppAction('nav_to', 'retirement')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            </a>
-            <a href="#" class="nav-item" data-view="investments" onclick="window.triggerAppAction('nav_to', 'investments')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-            </a>
-            <a href="#" class="nav-item" data-view="settings" onclick="window.triggerAppAction('nav_to', 'settings')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-            </a>
-        </nav>
     </div>
 
-    <!-- Modals (Add/Edit Transaction) -->
-    <div id="modal-tx-detail" class="modal-overlay" style="display: none;">
-        <div class="modal-content premium-modal">
-            <div class="modal-header">
-                <h2 id="modal-tx-title">지출 내역</h2>
-                <button class="btn btn-icon" id="btn-close-tx-modal">&times;</button>
+    <!-- Mobile Nav -->
+    <nav class="mobile-nav">
+        <a href="#" class="nav-item active" onclick="window.switchView('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="24" height="24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></a>
+        <a href="#" class="nav-item" onclick="window.switchView('budget')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="24" height="24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></a>
+        <a href="#" class="nav-item" onclick="window.switchView('investments')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="24" height="24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></a>
+        <a href="#" class="nav-item" onclick="window.switchView('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="24" height="24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></a>
+    </nav>
+
+    <!-- Modals -->
+    <div id="modal-tx-detail" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="modal-title" style="margin-bottom: 1.5rem;">지출 내역</h2>
+            <div class="premium-form-row">
+                <label>Merchant</label>
+                <input type="text" id="tx-merchant" class="modern-input" placeholder="e.g. Starbucks">
             </div>
-            <div class="modal-body">
-                <div id="modal-tx-type-toggle" class="toggle-container mb-4">
-                    <div class="toggle-item active expense" onclick="window.setModalTxType('expense')">Expense</div>
-                    <div class="toggle-item income" onclick="window.setModalTxType('income')">Income</div>
-                </div>
-                
-                <div class="premium-form-row">
-                    <label>Merchant / Name</label>
-                    <input type="text" id="tx-merchant" class="modern-input" placeholder="e.g. Starbucks">
-                </div>
-                <div class="premium-form-row">
-                    <label>Amount (₩)</label>
-                    <input type="text" id="tx-amount" class="modern-input" placeholder="0" inputmode="numeric" oninput="formatCurrencyInput(this)">
-                </div>
-                <div class="premium-form-row">
-                    <label>Category</label>
-                    <select id="tx-category" class="modern-input">
-                        <!-- Populated by JS -->
-                    </select>
-                </div>
-                <div class="premium-form-row">
-                    <label>Date</label>
-                    <input type="date" id="tx-date" class="modern-input">
-                </div>
+            <div class="premium-form-row">
+                <label>Amount (₩)</label>
+                <input type="text" id="tx-amount" class="modern-input" placeholder="0" inputmode="numeric" oninput="window.formatCurrencyInput(this)">
             </div>
-            <div class="modal-actions">
-                <button class="btn btn-premium-danger" id="btn-delete-tx-modal-new" style="display: none;">Delete</button>
-                <div style="flex: 1;"></div>
-                <button class="btn btn-premium-secondary" id="btn-cancel-edit-tx-modal">Cancel</button>
-                <button class="btn btn-premium-primary" id="btn-save-tx-modal">Save</button>
+            <div class="premium-form-row">
+                <label>Category</label>
+                <select id="tx-category" class="modern-input"></select>
+            </div>
+            <div class="premium-form-row">
+                <label>Date</label>
+                <input type="date" id="tx-date" class="modern-input">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 2rem;">
+                <button class="btn" onclick="document.getElementById('modal-tx-detail').style.display='none'" style="flex: 1;">Cancel</button>
+                <button class="btn btn-primary" onclick="window.saveTransactionFromModal()" style="flex: 1;">Save</button>
             </div>
         </div>
     </div>
 
-    <!-- Category Management Modal -->
-    <div id="modal-category-mgmt" class="modal-overlay" style="display: none;">
-        <div class="modal-content premium-modal" style="max-width: 500px; padding: 1.5rem; display: flex; flex-direction: column; max-height: 85vh;">
-            <div class="modal-header" style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); flex-shrink: 0;">
-                <h3 style="margin: 0; font-size: 1.25rem;">예산 관리</h3>
-                <button class="btn btn-icon" id="btn-close-cat-modal" onclick="window.closeCategoryManagementModal()">&times;</button>
-            </div>
-            
-            <div id="cat-mgmt-add-btn-wrap" style="flex-shrink: 0; margin-bottom: 1rem;">
-                <button class="btn btn-premium-primary" onclick="window.showCategoryAddForm()" style="width: 100%;">+ 추가</button>
-            </div>
-
-            <div class="modal-body" style="flex: 1; overflow-y: auto; padding-right: 4px; padding-bottom: 100px; -webkit-overflow-scrolling: touch;">
-                <p class="text-muted mb-3" style="font-size: 0.85rem;">카테고리별 예산 한도와 순서를 관리하세요.</p>
-                
-                <div id="cat-mgmt-list" class="cat-mgmt-list">
-                    <!-- Categories rendered here -->
-                </div>
-
-                <div id="cat-edit-form" style="display: none; border-top: 1px solid var(--glass-border); padding-top: 1.5rem; margin-top: 1.5rem;">
-                    <h4 id="cat-form-title" class="mb-3">Edit Category</h4>
-                    <input type="hidden" id="cat-edit-index">
-                    <div class="premium-form-row">
-                        <label>Category Name</label>
-                        <input type="text" id="cat-edit-name" class="modern-input" placeholder="e.g. Dining Out">
-                    </div>
-                    <div class="premium-form-row">
-                        <label>Monthly Limit (₩)</label>
-                        <input type="text" id="cat-edit-limit" class="modern-input" placeholder="0" inputmode="numeric" oninput="window.formatCurrencyInput(this)">
-                    </div>
-                    <div class="premium-form-row">
-                        <label>Color</label>
-                        <div id="cat-color-grid" class="cat-color-grid" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 8px;">
-                            <!-- Color options rendered here -->
-                        </div>
-                    </div>
-                    <div class="modal-actions mt-4">
-                        <button class="btn btn-premium-secondary" onclick="window.hideCategoryEditForm()">Cancel</button>
-                        <button class="btn btn-premium-primary" id="btn-save-cat-edit" onclick="window.saveCategoryEdit()">Apply Changes</button>
-                    </div>
-                </div>
-            </div>
-            </div>
-        </div>
-    </div>
-
+    <!-- Chart.js and Supabase -->
     <!-- Hidden file input for OCR -->
     <input type="file" id="file-input" accept="image/*" style="display: none;">
 
-    <button id="dev-mobile-toggle" style="position: fixed; top: 80px; right: 20px; z-index: 99999; background: #6366f1; color: white; border: none; padding: 8px; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" width="22" height="22"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-    </button>
-
-    <!-- Chart.js and Tesseract -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    
     <script>
-        var script = document.createElement('script');
-        script.src = 'app_v2.js?v=' + Date.now();
-        document.body.appendChild(script);
-    </script>
+        alert("FinanceOS v202-OCR is loaded! If you see this, the app is updated.");
+        // --- DATA & CONFIG ---
+        const SUPABASE_URL = 'https://gqmqegrmydtqxfnzdpty.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_UHVHuIwKWVGuMGgqD-ti6A_mFMAxXr9';
+        
+        let dbClient = null;
+        let currentUser = null;
+        let transactionsState = [];
+        let budgetState = {
+            totalLimit: 4000000,
+            categories: [
+                { name: '주거비', limit: 1500000, spent: 0, colorHex: '#6366F1' },
+                { name: '식비', limit: 500000, spent: 0, colorHex: '#0EA5E9' },
+                { name: '외식', limit: 300000, spent: 0, colorHex: '#EF4444' },
+                { name: '교통비', limit: 300000, spent: 0, colorHex: '#64748B' },
+                { name: '여가비', limit: 200000, spent: 0, colorHex: '#F59E0B' },
+                { name: '공과금', limit: 200000, spent: 0, colorHex: '#10B981' },
+                { name: '의료비', limit: 100000, spent: 0, colorHex: '#F97316' },
+                { name: '쇼핑', limit: 200000, spent: 0, colorHex: '#ec4899' },
+                { name: '기타', limit: 400000, spent: 0, colorHex: '#475569' }
+            ]
+        };
+        let monthlyBudgetsState = {}; // Stores monthly snapshots
+        let investmentsState = [];
+        let currentMonthView = new Date().toISOString().substring(0, 7);
+        let isEditingLimits = false;
+        let txSortCol = 'date';
+        let txSortOrder = 'desc';
+        let chartInstances = {};
 
-    <script>
-        // v102: Hide fallback when app boots or after timeout
-        window.addEventListener('DOMContentLoaded', function() {
-            var hideFallback = function() {
-                var fallback = document.getElementById('loading-fallback');
-                if (fallback) {
-                    fallback.style.opacity = '0';
-                    setTimeout(function() { fallback.style.display = 'none'; }, 500);
+        const APRIL_BACKUP = [{"id": 1777467969989, "date": "2026-04-29", "merchant": "산딸기, 계란", "amount": 37800, "category": "쿠팡", "type": "expense"}, {"id": 1777467954081, "date": "2026-04-29", "merchant": "카츠큐브", "amount": 16000, "category": "외식", "type": "expense"}, {"id": 1777382527105, "date": "2026-04-28", "merchant": "Lucas Blueberry", "amount": 61000, "category": "쿠팡", "type": "expense"}, {"id": 1777376663017, "date": "2026-04-28", "merchant": "과일", "amount": 23900, "category": "쿠팡", "type": "expense"}, {"id": 1777373922174, "date": "2026-04-28", "merchant": "새벽집", "amount": 16000, "category": "외식", "type": "expense"}, {"id": 1777373908518, "date": "2026-04-28", "merchant": "유니클로", "amount": 14809, "category": "쇼핑", "type": "expense"}, {"id": 1777349969948, "date": "2026-04-28", "merchant": "유니클로", "amount": 19900, "category": "쇼핑"}, {"id": 1777345870025, "date": "2026-04-28", "merchant": "네이버 넷플 멤버십", "amount": 8000, "category": "Subscription"}, {"id": 1777291533281, "date": "2026-04-27", "merchant": "컬리", "amount": 22087, "category": "식비"}, {"id": 1777290196012, "date": "2026-04-27", "merchant": "배달", "amount": 15784, "category": "외식"}, {"id": 1777281441781, "date": "2026-04-27", "merchant": "정형외과", "amount": 189800, "category": "의료비"}, {"id": 1777281413726, "date": "2026-04-13", "merchant": "인터넷 요금", "amount": 19250, "category": "교통/통신비"}, {"id": 1777281196444, "date": "2026-04-20", "merchant": "핸드폰 요금", "amount": 57870, "category": "교통/통신비"}, {"id": 1777270983305, "date": "2026-04-25", "merchant": "유니클로", "amount": 32900, "category": "쇼핑"}, {"id": 1777270962219, "date": "2026-04-27", "merchant": "유니클로", "amount": 29900, "category": "쇼핑"}, {"id": 1777270918056, "date": "2026-04-27", "merchant": "컬리 멤버십", "amount": 1900, "category": "Subscription"}, {"id": 1777270533182, "date": "2026-04-27", "merchant": "닥터에디션 영양제", "amount": 80000, "category": "의료비"}, {"id": 1777213107480, "date": "2026-04-26", "merchant": "배달-도스타코스", "amount": 45083, "category": "외식"}, {"id": 1777213079058, "date": "2026-04-25", "merchant": "피어 커피", "amount": 17100, "category": "외식"}, {"id": 1777213054496, "date": "2026-04-26", "merchant": "과일", "amount": 9900, "category": "쿠팡"}, {"id": 1777213009496, "date": "2026-04-26", "merchant": "킴스클럽", "amount": 66370, "category": "식비"}, {"id": 1777212971386, "date": "2026-04-26", "merchant": "Apple Services", "amount": 20441, "category": "Subscription"}, {"id": 1777212874655, "date": "2026-04-26", "merchant": "노브랜드", "amount": 29780, "category": "식비"}, {"id": 1777212841934, "date": "2026-04-26", "merchant": "파리크라상", "amount": 36780, "category": "외식"}, {"id": 1776949897311, "date": "2026-04-23", "merchant": "과일", "amount": 27500, "category": "쿠팡"}, {"id": 1776947981177, "date": "2026-04-23", "merchant": "정형외과", "amount": 167000, "category": "의료비"}, {"id": 1618033990000, "date": "2026-04-06", "merchant": "스타벅스", "amount": 6500, "category": "식비"}, {"id": 1775975260116, "date": "2026-04-12", "merchant": "스타벅스", "amount": 10000, "category": "식비"}, {"id": 1775975257377, "date": "2026-04-11", "merchant": "파리크라상", "amount": 15000, "category": "공과금"}, {"id": 1775975257314, "date": "2026-04-11", "merchant": "과일 장", "amount": 35460, "category": "공과금"}, {"id": 1775975476047, "date": "2026-04-09", "merchant": "와인", "amount": 68000, "category": "공과금"}, {"id": 1775702509708, "date": "2026-04-08", "merchant": "정육점 고기", "amount": 30000, "category": "식비"}, {"id": 1775702508125, "date": "2026-04-08", "merchant": "컬리", "amount": 20898, "category": "식비"}, {"id": 1775702505892, "date": "2026-04-08", "merchant": "과일", "amount": 33000, "category": "공과금"}, {"id": 1775702510501, "date": "2026-04-06", "merchant": "배달", "amount": 26000, "category": "외식"}, {"id": 1775702505091, "date": "2026-04-08", "merchant": "세탁비", "amount": 19100, "category": "공과금"}, {"id": 1775702503648, "date": "2026-04-06", "merchant": "산부인과", "amount": 32000, "category": "의료비"}, {"id": 1775702504714, "date": "2026-04-06", "merchant": "산부인과 영양제", "amount": 99000, "category": "의료비"}, {"id": 1775702512068, "date": "2026-04-06", "merchant": "녹차", "amount": 30616, "category": "식비"}, {"id": 1775702512224, "date": "2026-04-05", "merchant": "쉐이크쉑", "amount": 6900, "category": "외식"}, {"id": 1775702506244, "date": "2026-04-03", "merchant": "오어옷", "amount": 103386, "category": "쇼핑"}, {"id": 1775702503788, "date": "2026-04-04", "merchant": "커피", "amount": 16000, "category": "외식"}, {"id": 1775702509567, "date": "2026-04-03", "merchant": "김수사 스시", "amount": 50000, "category": "외식"}, {"id": 1775703153505, "date": "2026-04-05", "merchant": "배달", "amount": 14507, "category": "외식"}, {"id": 1775703193450, "date": "2026-04-01", "merchant": "과일", "amount": 48000, "category": "쿠팡"}, {"id": 1775703193823, "date": "2026-04-01", "merchant": "배달", "amount": 16000, "category": "외식"}, {"id": 1775791468701, "date": "2026-04-09", "merchant": "병원", "amount": 50000, "category": "의료비"}, {"id": 1775791475315, "date": "2026-04-09", "merchant": "과일", "amount": 35000, "category": "쿠팡"}, {"id": 1776058311425, "date": "2026-04-12", "merchant": "올리브영", "amount": 30450, "category": "쇼핑"}, {"id": 1776081471462, "date": "2026-04-13", "merchant": "과일", "amount": 50000, "category": "쿠팡"}, {"id": 1776081471533, "date": "2026-04-13", "merchant": "고기", "amount": 34000, "category": "식비"}, {"id": 1776331265284, "date": "2026-04-16", "merchant": "정형외과", "amount": 175000, "category": "의료비"}, {"id": 1776331269338, "date": "2026-04-16", "merchant": "과일", "amount": 29970, "category": "쿠팡"}, {"id": 1776331270922, "date": "2026-04-16", "merchant": "산부인과", "amount": 34000, "category": "의료비"}, {"id": 1776429132217, "date": "2026-04-17", "merchant": "과일", "amount": 98800, "category": "쿠팡"}, {"id": 1776429134788, "date": "2026-04-17", "merchant": "배달", "amount": 29558, "category": "외식"}, {"id": 1776429374237, "date": "2026-04-17", "merchant": "선호영양제", "amount": 80000, "category": "의료비"}, {"id": 1776429429578, "date": "2026-04-17", "merchant": "룰루레몬", "amount": 129000, "category": "쇼핑"}, {"id": 1776429517986, "date": "2026-04-17", "merchant": "유니클로", "amount": 40000, "category": "쇼핑"}, {"id": 1776692338360, "date": "2026-04-20", "merchant": "정형외과", "amount": 167000, "category": "의료비"}, {"id": 1776692343506, "date": "2026-04-20", "merchant": "산부인과", "amount": 28000, "category": "의료비"}, {"id": 1776692453970, "date": "2026-04-20", "merchant": "네이비카운티", "amount": 68900, "category": "쇼핑"}, {"id": 1776695897941, "date": "2026-04-20", "merchant": "과일", "amount": 22000, "category": "쿠팡"}, {"id": 1776700219890, "date": "2026-04-21", "merchant": "룰루레몬", "amount": 33660, "category": "쇼핑"}, {"id": 1776749788786, "date": "2026-04-21", "merchant": "Economist", "amount": 139950, "category": "Subscription"}, {"id": 1776918144102, "date": "2026-04-22", "merchant": "치과", "amount": 18500, "category": "의료비"}, {"id": 1776918136230, "date": "2026-04-22", "merchant": "디팰 주차비", "amount": 21000, "category": "교통/통신비"}];
+        const MAY_BUDGET_BACKUP = {"totalLimit": 2000000, "categories": [{"name": "식비", "spent": 0, "limit": 450000, "colorHex": "#0EA5E9"}, {"name": "외식", "spent": 0, "limit": 150000, "colorHex": "#EF4444"}, {"name": "쿠팡", "limit": 600000, "colorHex": "#EAB308", "spent": 0}, {"name": "쇼핑", "spent": 0, "limit": 300000, "colorHex": "#ec4899"}, {"name": "의료비", "spent": 0, "limit": 100000, "colorHex": "#F97316"}, {"name": "교통/통신비", "limit": 100000, "colorHex": "#64748B", "spent": 0}, {"name": "공과금", "limit": 500000, "colorHex": "#10B981", "spent": 0}, {"name": "Subscription", "limit": 50000, "colorHex": "#A16207", "spent": 0}, {"name": "여가비", "spent": 0, "limit": 0, "colorHex": "#F59E0B"}, {"name": "기타", "spent": 0, "limit": 0, "colorHex": "#475569"}]};
+
+        // --- CORE LOGIC ---
+        async function bootstrap() {
+            dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            
+            dbClient.auth.onAuthStateChange((event, session) => {
+                if (session) {
+                    currentUser = session.user;
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    document.querySelector('.app-container').style.opacity = '1';
+                    document.getElementById('user-name-display').textContent = currentUser.email.split('@')[0];
+                    loadData();
+                } else {
+                    document.getElementById('auth-overlay').style.display = 'flex';
                 }
+            });
+
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const view = el.getAttribute('data-view');
+                    if (view) switchView(view);
+                });
+            });
+
+            setTimeout(() => {
+                document.getElementById('loading-fallback').style.opacity = '0';
+                setTimeout(() => document.getElementById('loading-fallback').style.display = 'none', 500);
+            }, 1500);
+
+            initOCRScanner();
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll(`[data-view="${viewId}"]`).forEach(n => n.classList.add('active'));
+            document.getElementById('view-title').textContent = viewId.charAt(0).toUpperCase() + viewId.slice(1);
+            refreshAllUI();
+        }
+
+        async function loadData() {
+            const { data, error } = await dbClient.from('finance_storage').select('state').eq('user_id', currentUser.id).maybeSingle();
+            if (error) console.error(error);
+            
+            let state = (data && data.state) || { transactionsState: [], monthlyBudgetsState: {}, investmentsState: [] };
+            
+            // --- IRONCLAD DATA HYDRATION ---
+            const existingIds = new Set(state.transactionsState.map(tx => tx.id));
+            let addedTx = 0;
+            APRIL_BACKUP.forEach(tx => {
+                if (!existingIds.has(tx.id)) {
+                    state.transactionsState.push(tx);
+                    addedTx++;
+                }
+            });
+
+            // Hydrate May Budget if missing or if it has default category names
+            let addedBudget = false;
+            const currentMayBudget = state.monthlyBudgetsState['2026-05'];
+            const isDefaultMay = !currentMayBudget || (currentMayBudget.categories && currentMayBudget.categories.some(c => c.name === '주거비'));
+            
+            if (isDefaultMay) {
+                state.monthlyBudgetsState['2026-05'] = JSON.parse(JSON.stringify(MAY_BUDGET_BACKUP));
+                addedBudget = true;
+                console.log("[Hydration] Forcing May Budget Backup (found default categories).");
+            }
+
+            transactionsState = state.transactionsState || [];
+            monthlyBudgetsState = state.monthlyBudgetsState || {};
+            investmentsState = state.investmentsState || [];
+
+            if (addedTx > 0 || addedBudget) {
+                console.log(`[Hydration] Injected ${addedTx} transactions and May budget.`);
+                saveData(true); // Silent save back to cloud
+            }
+            
+            refreshAllUI();
+        }
+
+        async function saveData(silent = false) {
+            if (!silent) showToast("Saving to cloud...", 1000);
+            const state = { transactionsState, monthlyBudgetsState, investmentsState };
+            const { error } = await dbClient.from('finance_storage').upsert({ user_id: currentUser.id, state, updated_at: new Date() });
+            
+            if (error) {
+                console.error("Save error:", error);
+                if (!silent) showToast("⚠️ Save failed! Please check connection.", 3000);
+            } else {
+                if (!silent) showToast("✅ Saved successfully", 1500);
+            }
+        }
+
+        function showToast(msg, duration = 2000) {
+            const container = document.getElementById('toast-container');
+            if (!container) {
+                const c = document.createElement('div');
+                c.id = 'toast-container';
+                document.body.appendChild(c);
+            }
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        function refreshAllUI() {
+            syncMonthLabels();
+            renderDashboard();
+            renderBudgetUI();
+            renderInvestments();
+            renderRetirement();
+        }
+
+        function syncMonthLabels() {
+            const [y, m] = currentMonthView.split('-');
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            document.getElementById('current-month-display').textContent = `${months[parseInt(m)-1]} ${y}`;
+        }
+
+        function renderDashboard() {
+            const monthTx = transactionsState.filter(tx => tx.date && tx.date.startsWith(currentMonthView));
+            const spent = monthTx.reduce((sum, tx) => sum + (parseInt(tx.amount) || 0), 0);
+            const budget = monthlyBudgetsState[currentMonthView] || budgetState;
+            const left = budget.totalLimit - spent;
+
+            document.getElementById('dashboard-monthly-spent').textContent = `₩${spent.toLocaleString()}`;
+            document.getElementById('dashboard-budget-left').textContent = `₩${left.toLocaleString()}`;
+            document.getElementById('dashboard-budget-left').className = `bsc-value ${left < 0 ? 'negative' : 'positive'}`;
+
+            // Recent List
+            const recent = transactionsState.slice().sort((a,b) => b.date.localeCompare(a.date)).slice(0, 5);
+            const list = document.getElementById('dashboard-recent-list');
+            list.innerHTML = recent.map(tx => `
+                <div class="li-row" style="display:flex; justify-content:space-between; padding: 12px 0;">
+                    <div>
+                        <div class="li-merchant">${tx.merchant}</div>
+                        <div class="li-sub">${tx.category} • ${tx.date}</div>
+                    </div>
+                    <div class="budget-amount-cell">₩${tx.amount.toLocaleString()}</div>
+                </div>
+            `).join('') || '<div style="text-align:center; color:var(--text-muted);">No data</div>';
+
+            renderBudgetChart(monthTx, budget);
+            
+            // Total Portfolio
+            const totalInvest = investmentsState.reduce((s, i) => s + (i.shares * i.price), 0);
+            document.getElementById('dashboard-invest-value').textContent = `₩${totalInvest.toLocaleString()}`;
+        }
+
+        function renderBudgetUI() {
+            const container = document.getElementById('budget-category-list');
+            const monthTx = transactionsState.filter(tx => tx.date && tx.date.startsWith(currentMonthView));
+            const budget = monthlyBudgetsState[currentMonthView] || budgetState;
+
+            container.innerHTML = budget.categories.map((cat, idx) => {
+                const catSpent = monthTx.filter(tx => tx.category === cat.name).reduce((sum, tx) => sum + (parseInt(tx.amount) || 0), 0);
+                const pct = Math.min((catSpent / cat.limit) * 100, 100);
+                
+                return `
+                    <div style="margin-bottom: 1.25rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem; font-weight:700; font-size:0.85rem;">
+                            <span>${cat.name}</span>
+                            <span>₩${catSpent.toLocaleString()} / ${isEditingLimits ? `<input type="number" value="${cat.limit}" onchange="window.updateLimit(${idx}, this.value)" style="width:80px; text-align:right;">` : `₩${cat.limit.toLocaleString()}`}</span>
+                        </div>
+                        <div class="cat-progress-track">
+                            <div class="cat-progress-bar" style="width:${pct}%; background:${cat.colorHex};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Totals
+            const totalSpent = monthTx.reduce((sum, tx) => sum + (parseInt(tx.amount) || 0), 0);
+            document.getElementById('budget-total-spent').textContent = `₩${totalSpent.toLocaleString()}`;
+            document.getElementById('budget-remaining').textContent = `₩${(budget.totalLimit - totalSpent).toLocaleString()}`;
+
+            // List
+            const tbody = document.getElementById('confirmed-tx-body');
+            const sorted = monthTx.sort((a,b) => {
+                if (txSortCol === 'date') return txSortOrder === 'desc' ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date);
+                return txSortOrder === 'desc' ? b.amount - a.amount : a.amount - b.amount;
+            });
+
+            tbody.innerHTML = sorted.map(tx => `
+                <tr class="li-row">
+                    <td class="budget-date-cell">${tx.date.substring(5)}</td>
+                    <td class="budget-merchant-cell">
+                        <div class="li-color-bar" style="background:${(budget.categories.find(c => c.name === tx.category) || {colorHex: '#ccc'}).colorHex};"></div>
+                        <div class="li-content">
+                            <div class="li-merchant">${tx.merchant}</div>
+                            <div class="li-sub">${tx.category}</div>
+                        </div>
+                    </td>
+                    <td class="budget-amount-cell">₩${tx.amount.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderInvestments() {
+            const totalVal = investmentsState.reduce((s, i) => s + (i.shares * i.price), 0);
+            document.getElementById('portfolio-total').textContent = `₩${totalVal.toLocaleString()}`;
+            
+            const tbody = document.getElementById('investments-body');
+            tbody.innerHTML = investmentsState.map(i => `
+                <tr class="li-row">
+                    <td style="padding: 12px 0;"><strong>${i.name}</strong></td>
+                    <td>${i.shares}</td>
+                    <td>₩${i.price.toLocaleString()}</td>
+                    <td style="text-align:right; font-weight:700;">₩${(i.shares * i.price).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderRetirement() {
+            // Projection Logic
+            const ctx = document.getElementById('retirementChart');
+            if (chartInstances['retirementChart']) chartInstances['retirementChart'].destroy();
+            chartInstances['retirementChart'] = new Chart(ctx, {
+                type: 'line',
+                data: { labels: ['2026', '2036', '2046', '2056', '2066'], datasets: [{ label: 'Wealth', data: [100, 300, 600, 950, 1240], borderColor: '#6366f1', fill: true, tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v + 'M' } } } }
+            });
+        }
+
+        // --- UTILS ---
+        function renderBudgetChart(monthTx, budget) {
+            const ctx = document.getElementById('budgetChart');
+            if (chartInstances['budgetChart']) chartInstances['budgetChart'].destroy();
+            
+            const labels = budget.categories.map(c => c.name);
+            const data = budget.categories.map(cat => monthTx.filter(tx => tx.category === cat.name).reduce((sum, tx) => sum + (parseInt(tx.amount) || 0), 0));
+            const colors = budget.categories.map(c => c.colorHex);
+
+            chartInstances['budgetChart'] = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+            });
+        }
+
+        window.handleSocialLogin = async (provider) => {
+            await dbClient.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.origin + window.location.pathname } });
+        };
+
+        window.handleLogout = async () => {
+            await dbClient.auth.signOut();
+            window.location.reload();
+        };
+
+        window.changeMonth = (delta) => {
+            let [y, m] = currentMonthView.split('-').map(Number);
+            m += delta;
+            if (m > 12) { m = 1; y++; } else if (m < 1) { m = 12; y--; }
+            currentMonthView = `${y}-${m.toString().padStart(2, '0')}`;
+            refreshAllUI();
+        };
+
+        window.setSort = (col) => {
+            if (txSortCol === col) txSortOrder = txSortOrder === 'desc' ? 'asc' : 'desc';
+            else { txSortCol = col; txSortOrder = 'desc'; }
+            renderBudgetUI();
+        };
+
+        window.showAddTransactionModal = () => {
+            const modal = document.getElementById('modal-tx-detail');
+            const catSelect = document.getElementById('tx-category');
+            catSelect.innerHTML = budgetState.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+            modal.style.display = 'flex';
+        };
+
+        window.saveTransactionFromModal = () => {
+            const merchant = document.getElementById('tx-merchant').value;
+            const amount = parseInt(document.getElementById('tx-amount').value.replace(/,/g, '')) || 0;
+            const category = document.getElementById('tx-category').value;
+            const date = document.getElementById('tx-date').value;
+
+            if (!merchant || amount <= 0) return alert("Valid data please");
+
+            transactionsState.push({ id: Date.now(), merchant, amount, category, date });
+            saveData();
+            document.getElementById('modal-tx-detail').style.display = 'none';
+            refreshAllUI();
+        };
+
+        window.updateLimit = (idx, val) => {
+            const budget = monthlyBudgetsState[currentMonthView] || JSON.parse(JSON.stringify(budgetState));
+            budget.categories[idx].limit = parseInt(val) || 0;
+            budget.totalLimit = budget.categories.reduce((s, c) => s + c.limit, 0);
+            monthlyBudgetsState[currentMonthView] = budget;
+            saveData();
+        };
+
+        window.forceRescueData = () => {
+            if (!confirm("Rescue April Backup?")) return;
+            loadData(); // Re-runs hydration logic
+            alert("Rescue logic triggered.");
+        };
+
+        window.toggleTheme = () => {
+            const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('financeOS_theme', theme);
+        };
+
+        window.formatCurrencyInput = (el) => {
+            let val = el.value.replace(/[^0-9]/g, '');
+            el.value = val.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        };
+
+        // --- OCR LOGIC ---
+        let ocrResults = [];
+
+        function initOCRScanner() {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+
+            if (!dropZone || !fileInput) return;
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+                dropZone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(evt => {
+                dropZone.addEventListener(evt, () => dropZone.classList.add('dragover'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(evt => {
+                dropZone.addEventListener(evt, () => dropZone.classList.remove('dragover'), false);
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length) processImageFile(files[0]);
+            }, false);
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) processImageFile(e.target.files[0]);
+            });
+        }
+
+        async function processImageFile(file) {
+            if (!file) return;
+            
+            document.getElementById('drop-zone').style.display = 'none';
+            document.getElementById('ocr-loading').style.display = 'block';
+            document.getElementById('ocr-preview').style.display = 'none';
+            
+            const progressFill = document.getElementById('ocr-progress');
+            const progressText = document.getElementById('ocr-progress-text');
+            const statusText = document.getElementById('ocr-status');
+
+            try {
+                const worker = await Tesseract.createWorker('kor+eng', 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const pct = Math.floor(m.progress * 100);
+                            progressFill.style.width = pct + '%';
+                            progressText.textContent = pct + '% 완료';
+                        } else {
+                            statusText.textContent = m.status + '...';
+                        }
+                    }
+                });
+
+                const { data: { text } } = await worker.recognize(file);
+                await worker.terminate();
+                
+                const results = parseKoreanReceiptText(text);
+                ocrResults = results;
+                showOCRPreview(results);
+            } catch (err) {
+                console.error("OCR Error:", err);
+                showToast("❌ OCR 분석 중 오류가 발생했습니다.", 3000);
+                resetOCR();
+            }
+        }
+
+        function parseKoreanReceiptText(text) {
+            console.log("Raw OCR Text:", text);
+            const lines = text.split('\n');
+            let date = new Date().toISOString().split('T')[0];
+            let merchant = "알 수 없는 가맹점";
+            let amount = 0;
+
+            // Date Extraction
+            const dateMatch = text.match(/202[0-9][.-/][0-1][0-9][.-/][0-3][0-9]/);
+            if (dateMatch) date = dateMatch[0].replace(/[./]/g, '-');
+
+            // Amount Extraction (Look for large numbers with currency markers)
+            const amountMatches = text.replace(/,/g, '').match(/\d{3,9}/g);
+            if (amountMatches) {
+                // Usually the largest number in a receipt is the total
+                amount = Math.max(...amountMatches.map(Number));
+            }
+
+            // Merchant Extraction (Simplified: first line that isn't date/tel)
+            for (let line of lines) {
+                line = line.trim();
+                if (line.length > 2 && !line.match(/[0-9-]{8,}/) && !line.includes('202')) {
+                    merchant = line;
+                    break;
+                }
+            }
+
+            // Category Guessing
+            let category = "기타";
+            const catMap = {
+                "식비": ["식당", "카페", "마트", "커피", "편의점", "GS25", "CU", "스타벅스"],
+                "교통비": ["택시", "버스", "지하철", "주유", "카카오T"],
+                "쇼핑": ["쿠팡", "마켓컬리", "무신사", "백화점"],
+                "의료비": ["병원", "약국", "의원"]
             };
-            // Force hide after 4s no matter what (v102)
-            setTimeout(hideFallback, 4000);
-        });
+
+            for (const [cat, keywords] of Object.entries(catMap)) {
+                if (keywords.some(k => merchant.includes(k))) {
+                    category = cat;
+                    break;
+                }
+            }
+
+            return [{ date, merchant, amount, category }];
+        }
+
+        function showOCRPreview(results) {
+            document.getElementById('ocr-loading').style.display = 'none';
+            document.getElementById('ocr-preview').style.display = 'block';
+            
+            const tbody = document.getElementById('parsed-tx-body');
+            tbody.innerHTML = results.map((res, i) => `
+                <tr>
+                    <td><input type="date" value="${res.date}" onchange="ocrResults[${i}].date = this.value"></td>
+                    <td><input type="text" value="${res.merchant}" onchange="ocrResults[${i}].merchant = this.value"></td>
+                    <td style="text-align: right;"><input type="text" value="${res.amount.toLocaleString()}" oninput="window.formatCurrencyInput(this); ocrResults[${i}].amount = parseInt(this.value.replace(/,/g,'')) || 0" style="text-align: right;"></td>
+                    <td>
+                        <select onchange="ocrResults[${i}].category = this.value" style="background:transparent; color:white; border:none; width:100%;">
+                            ${budgetState.categories.map(c => `<option value="${c.name}" ${res.category === c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.confirmOCR = () => {
+            ocrResults.forEach(res => {
+                transactionsState.push({
+                    id: Date.now() + Math.random(),
+                    merchant: res.merchant,
+                    amount: res.amount,
+                    category: res.category,
+                    date: res.date
+                });
+            });
+            saveData();
+            showToast(`✅ ${ocrResults.length}개의 내역이 추가되었습니다.`);
+            resetOCR();
+            refreshAllUI();
+        };
+
+        window.cancelOCR = () => {
+            resetOCR();
+        };
+
+        window.triggerAppAction = (action) => {
+            if (action === 'ocr_upload') {
+                switchView('budget');
+                document.getElementById('file-input').click();
+            }
+        };
+
+        function resetOCR() {
+            const container = document.getElementById('ocr-scanner-container');
+            const dropZone = document.getElementById('drop-zone');
+            const loading = document.getElementById('ocr-loading');
+            const preview = document.getElementById('ocr-preview');
+            
+            if (container) container.style.display = 'block';
+            if (dropZone) dropZone.style.display = 'flex';
+            if (loading) loading.style.display = 'none';
+            if (preview) preview.style.display = 'none';
+            
+            const fileInput = document.getElementById('file-input');
+            if (fileInput) fileInput.value = '';
+            ocrResults = [];
+        }
+
+        window.rescueMayData = () => {
+            if (!confirm("May 2026 예산 데이터를 강제로 복구하시겠습니까? (현재 설정이 덮어씌워집니다)")) return;
+            monthlyBudgetsState['2026-05'] = JSON.parse(JSON.stringify(MAY_BUDGET_BACKUP));
+            saveData();
+            refreshAllUI();
+            showToast("✅ May 2026 예산이 복구되었습니다.");
+        };
+
+        bootstrap();
     </script>
 </body>
 </html>
