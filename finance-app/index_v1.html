@@ -915,8 +915,14 @@
         window.showAddTransactionModal = () => {
             const modal = document.getElementById('modal-tx-detail');
             const catSelect = document.getElementById('tx-category');
-            catSelect.innerHTML = budgetState.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            
+            // Fix: Use current month's categories if available
+            const budget = monthlyBudgetsState[currentMonthView] || budgetState;
+            catSelect.innerHTML = budget.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            
             document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('tx-merchant').value = '';
+            document.getElementById('tx-amount').value = '';
             modal.style.display = 'flex';
         };
 
@@ -1115,10 +1121,19 @@
             resetOCR();
         };
 
-        window.triggerAppAction = (action) => {
+        window.triggerAppAction = (action, ...args) => {
+            console.log("Triggering action:", action, args);
             if (action === 'ocr_upload') {
                 switchView('budget');
                 document.getElementById('file-input').click();
+            } else if (action === 'add_entry') {
+                window.showAddTransactionModal();
+            } else if (action === 'toggle_theme') {
+                window.toggleTheme();
+            } else if (action === 'change_month') {
+                window.changeMonth(args[0]);
+            } else if (action === 'nav_to') {
+                switchView(args[0]);
             }
         };
 
