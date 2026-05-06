@@ -166,6 +166,112 @@
         
         /* v101: Fallback Pointer events none */
         #loading-fallback { pointer-events: none !important; }
+
+        /* --- OCR Receipt Scanner Styles --- */
+        .drop-zone {
+            border: 2px dashed var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-secondary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent-primary);
+            background: var(--accent-glow);
+            transform: translateY(-2px);
+        }
+        .drop-zone svg {
+            width: 40px; height: 40px;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
+        }
+        .drop-zone:hover svg { color: var(--accent-primary); }
+        .drop-zone p { font-size: 0.9rem; font-weight: 700; }
+        .drop-zone span { font-size: 0.75rem; color: var(--text-muted); }
+
+        #ocr-loading {
+            padding: 2rem;
+            text-align: center;
+            display: none;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        #ocr-preview {
+            display: none;
+            margin-bottom: 1.5rem;
+        }
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+        }
+        .preview-table th {
+            text-align: left;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.02);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .preview-table td {
+            padding: 12px 16px;
+            border-top: 1px solid var(--glass-border);
+            font-size: 0.9rem;
+        }
+        .preview-table input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            width: 100%;
+            font-family: inherit;
+            font-size: inherit;
+            padding: 4px 0;
+        }
+        .preview-table input:focus {
+            outline: none;
+            background: rgba(99, 102, 241, 0.1);
+        }
     </style>
 
     <script>
@@ -178,6 +284,11 @@
     </script>
 </head>
 <body data-active-view="dashboard">
+    <!-- Version Marker for Cache Debugging -->
+    <div style="position:fixed; top:0; left:0; right:0; background:#6366f1; color:white; text-align:center; padding:4px; font-size:10px; font-weight:900; z-index:1000000; pointer-events:none;">
+        Cherry Money v202-OCR (LATEST) - If you see this, the app is updated.
+    </div>
+
     <!-- Auth Overlay -->
     <div id="auth-overlay" style="display: flex;">
         <div class="auth-card">
@@ -209,7 +320,7 @@
     <div id="loading-fallback" style="position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:9999999;background:#0f172a;">
         <div style="text-align:center; color: white;">
             <div style="font-size:24px;margin-bottom:10px;font-weight:800;">Cherry Money</div>
-            <div style="font-size:14px;opacity:0.6;">Stabilizing State... (v201)</div>
+            <div style="font-size:14px;opacity:0.6;">Stabilizing State... (v202-OCR)</div>
         </div>
     </div>
 
@@ -259,7 +370,10 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="header">
-                <h1 id="view-title">Dashboard</h1>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <h1 id="view-title">Dashboard</h1>
+                    <span style="font-size: 10px; background: var(--accent-glow); color: var(--accent-primary); padding: 2px 6px; border-radius: 4px; font-weight: 800;">v202-OCR</span>
+                </div>
                 
                 <div id="global-month-nav" style="display: flex; align-items: center; gap: 1rem;">
                     <button class="btn-icon" onclick="window.changeMonth(-1)">
@@ -272,6 +386,11 @@
                 </div>
 
                 <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-icon" id="btn-upload-header-proxy" title="OCR Upload" onclick="window.triggerAppAction('ocr_upload')" style="background: #6366f1 !important; color: white !important; border: none; padding: 10px 20px; border-radius: 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18" style="stroke: white;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <span style="font-size: 12px; font-weight: 900;">SCAN RECEIPT</span>
+                    </button>
+                    <button class="btn btn-icon" onclick="window.rescueMayData()" title="Fix May Data" style="background: #ef4444; color: white; border: none; padding: 10px;">🛠️ FIX</button>
                     <button class="btn btn-icon" onclick="window.toggleTheme()" title="Toggle Theme">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
                     </button>
@@ -322,6 +441,48 @@
 
             <!-- Budget View -->
             <section id="budget" class="view-section">
+                <!-- OCR Receipt Scanner UI -->
+                <div id="ocr-scanner-container" class="card glass" style="padding: 1.5rem; margin-bottom: 1.5rem; border: 2px solid var(--accent-glow);">
+                    <div id="drop-zone" class="drop-zone" onclick="document.getElementById('file-input').click()" style="margin-bottom: 0;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 48px; height: 48px; margin-bottom: 1rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <p style="font-size: 1.1rem; color: var(--accent-primary);">영수증 영수증 스캐너</p>
+                        <p style="font-size: 0.9rem; font-weight: 600;">이미지를 업로드하거나 드래그하세요</p>
+                        <span style="margin-top: 8px;">(OCR Receipt Scanner - Tesseract Engine)</span>
+                    </div>
+
+                    <div id="ocr-loading" style="display: none; text-align: center; padding: 2rem 0;">
+                        <div class="spinner"></div>
+                        <p id="ocr-status" style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">영수증을 분석하고 있습니다...</p>
+                        <div class="progress-container" style="max-width: 300px; margin: 1.5rem auto;">
+                            <div id="ocr-progress" class="progress-bar"></div>
+                        </div>
+                        <span id="ocr-progress-text" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">0% 완료</span>
+                    </div>
+
+                    <div id="ocr-preview" style="display: none; margin-top: 1rem;">
+                        <div class="preview-header" style="background: var(--bg-primary); padding: 12px 16px; border-radius: 12px; margin-bottom: 1rem;">
+                            <h3 style="margin: 0; font-size: 1rem;">분석 결과 확인</h3>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn" onclick="window.cancelOCR()" style="padding: 6px 12px; font-size: 0.75rem; background: var(--bg-secondary);">취소</button>
+                                <button class="btn btn-primary" onclick="window.confirmOCR()" style="padding: 6px 12px; font-size: 0.75rem;">확인 및 추가</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="preview-table">
+                                <thead>
+                                    <tr>
+                                        <th>날짜</th>
+                                        <th>가맹점</th>
+                                        <th style="text-align: right;">금액</th>
+                                        <th>카테고리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="parsed-tx-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="budget-summary-row">
                     <div class="budget-summary-card">
                         <div class="bsc-label">총 지출액 (Total Spent)</div>
@@ -342,6 +503,9 @@
                     </div>
                     <div id="budget-category-list">
                         <!-- JS renders here -->
+                    </div>
+                    <div style="margin-top: 1.5rem; text-align: center; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+                        <span style="font-size: 0.7rem; color: var(--text-muted); cursor: pointer; text-decoration: underline;" onclick="window.rescueMayData()">May 2026 데이터가 안 보이나요? (복구하기)</span>
                     </div>
                 </div>
 
@@ -444,10 +608,15 @@
     </div>
 
     <!-- Chart.js and Supabase -->
+    <!-- Hidden file input for OCR -->
+    <input type="file" id="file-input" accept="image/*" style="display: none;">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     
     <script>
+        alert("FinanceOS v202-OCR is loaded! If you see this, the app is updated.");
         // --- DATA & CONFIG ---
         const SUPABASE_URL = 'https://gqmqegrmydtqxfnzdpty.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_UHVHuIwKWVGuMGgqD-ti6A_mFMAxXr9';
@@ -478,6 +647,7 @@
         let chartInstances = {};
 
         const APRIL_BACKUP = [{"id": 1777467969989, "date": "2026-04-29", "merchant": "산딸기, 계란", "amount": 37800, "category": "쿠팡", "type": "expense"}, {"id": 1777467954081, "date": "2026-04-29", "merchant": "카츠큐브", "amount": 16000, "category": "외식", "type": "expense"}, {"id": 1777382527105, "date": "2026-04-28", "merchant": "Lucas Blueberry", "amount": 61000, "category": "쿠팡", "type": "expense"}, {"id": 1777376663017, "date": "2026-04-28", "merchant": "과일", "amount": 23900, "category": "쿠팡", "type": "expense"}, {"id": 1777373922174, "date": "2026-04-28", "merchant": "새벽집", "amount": 16000, "category": "외식", "type": "expense"}, {"id": 1777373908518, "date": "2026-04-28", "merchant": "유니클로", "amount": 14809, "category": "쇼핑", "type": "expense"}, {"id": 1777349969948, "date": "2026-04-28", "merchant": "유니클로", "amount": 19900, "category": "쇼핑"}, {"id": 1777345870025, "date": "2026-04-28", "merchant": "네이버 넷플 멤버십", "amount": 8000, "category": "Subscription"}, {"id": 1777291533281, "date": "2026-04-27", "merchant": "컬리", "amount": 22087, "category": "식비"}, {"id": 1777290196012, "date": "2026-04-27", "merchant": "배달", "amount": 15784, "category": "외식"}, {"id": 1777281441781, "date": "2026-04-27", "merchant": "정형외과", "amount": 189800, "category": "의료비"}, {"id": 1777281413726, "date": "2026-04-13", "merchant": "인터넷 요금", "amount": 19250, "category": "교통/통신비"}, {"id": 1777281196444, "date": "2026-04-20", "merchant": "핸드폰 요금", "amount": 57870, "category": "교통/통신비"}, {"id": 1777270983305, "date": "2026-04-25", "merchant": "유니클로", "amount": 32900, "category": "쇼핑"}, {"id": 1777270962219, "date": "2026-04-27", "merchant": "유니클로", "amount": 29900, "category": "쇼핑"}, {"id": 1777270918056, "date": "2026-04-27", "merchant": "컬리 멤버십", "amount": 1900, "category": "Subscription"}, {"id": 1777270533182, "date": "2026-04-27", "merchant": "닥터에디션 영양제", "amount": 80000, "category": "의료비"}, {"id": 1777213107480, "date": "2026-04-26", "merchant": "배달-도스타코스", "amount": 45083, "category": "외식"}, {"id": 1777213079058, "date": "2026-04-25", "merchant": "피어 커피", "amount": 17100, "category": "외식"}, {"id": 1777213054496, "date": "2026-04-26", "merchant": "과일", "amount": 9900, "category": "쿠팡"}, {"id": 1777213009496, "date": "2026-04-26", "merchant": "킴스클럽", "amount": 66370, "category": "식비"}, {"id": 1777212971386, "date": "2026-04-26", "merchant": "Apple Services", "amount": 20441, "category": "Subscription"}, {"id": 1777212874655, "date": "2026-04-26", "merchant": "노브랜드", "amount": 29780, "category": "식비"}, {"id": 1777212841934, "date": "2026-04-26", "merchant": "파리크라상", "amount": 36780, "category": "외식"}, {"id": 1776949897311, "date": "2026-04-23", "merchant": "과일", "amount": 27500, "category": "쿠팡"}, {"id": 1776947981177, "date": "2026-04-23", "merchant": "정형외과", "amount": 167000, "category": "의료비"}, {"id": 1618033990000, "date": "2026-04-06", "merchant": "스타벅스", "amount": 6500, "category": "식비"}, {"id": 1775975260116, "date": "2026-04-12", "merchant": "스타벅스", "amount": 10000, "category": "식비"}, {"id": 1775975257377, "date": "2026-04-11", "merchant": "파리크라상", "amount": 15000, "category": "공과금"}, {"id": 1775975257314, "date": "2026-04-11", "merchant": "과일 장", "amount": 35460, "category": "공과금"}, {"id": 1775975476047, "date": "2026-04-09", "merchant": "와인", "amount": 68000, "category": "공과금"}, {"id": 1775702509708, "date": "2026-04-08", "merchant": "정육점 고기", "amount": 30000, "category": "식비"}, {"id": 1775702508125, "date": "2026-04-08", "merchant": "컬리", "amount": 20898, "category": "식비"}, {"id": 1775702505892, "date": "2026-04-08", "merchant": "과일", "amount": 33000, "category": "공과금"}, {"id": 1775702510501, "date": "2026-04-06", "merchant": "배달", "amount": 26000, "category": "외식"}, {"id": 1775702505091, "date": "2026-04-08", "merchant": "세탁비", "amount": 19100, "category": "공과금"}, {"id": 1775702503648, "date": "2026-04-06", "merchant": "산부인과", "amount": 32000, "category": "의료비"}, {"id": 1775702504714, "date": "2026-04-06", "merchant": "산부인과 영양제", "amount": 99000, "category": "의료비"}, {"id": 1775702512068, "date": "2026-04-06", "merchant": "녹차", "amount": 30616, "category": "식비"}, {"id": 1775702512224, "date": "2026-04-05", "merchant": "쉐이크쉑", "amount": 6900, "category": "외식"}, {"id": 1775702506244, "date": "2026-04-03", "merchant": "오어옷", "amount": 103386, "category": "쇼핑"}, {"id": 1775702503788, "date": "2026-04-04", "merchant": "커피", "amount": 16000, "category": "외식"}, {"id": 1775702509567, "date": "2026-04-03", "merchant": "김수사 스시", "amount": 50000, "category": "외식"}, {"id": 1775703153505, "date": "2026-04-05", "merchant": "배달", "amount": 14507, "category": "외식"}, {"id": 1775703193450, "date": "2026-04-01", "merchant": "과일", "amount": 48000, "category": "쿠팡"}, {"id": 1775703193823, "date": "2026-04-01", "merchant": "배달", "amount": 16000, "category": "외식"}, {"id": 1775791468701, "date": "2026-04-09", "merchant": "병원", "amount": 50000, "category": "의료비"}, {"id": 1775791475315, "date": "2026-04-09", "merchant": "과일", "amount": 35000, "category": "쿠팡"}, {"id": 1776058311425, "date": "2026-04-12", "merchant": "올리브영", "amount": 30450, "category": "쇼핑"}, {"id": 1776081471462, "date": "2026-04-13", "merchant": "과일", "amount": 50000, "category": "쿠팡"}, {"id": 1776081471533, "date": "2026-04-13", "merchant": "고기", "amount": 34000, "category": "식비"}, {"id": 1776331265284, "date": "2026-04-16", "merchant": "정형외과", "amount": 175000, "category": "의료비"}, {"id": 1776331269338, "date": "2026-04-16", "merchant": "과일", "amount": 29970, "category": "쿠팡"}, {"id": 1776331270922, "date": "2026-04-16", "merchant": "산부인과", "amount": 34000, "category": "의료비"}, {"id": 1776429132217, "date": "2026-04-17", "merchant": "과일", "amount": 98800, "category": "쿠팡"}, {"id": 1776429134788, "date": "2026-04-17", "merchant": "배달", "amount": 29558, "category": "외식"}, {"id": 1776429374237, "date": "2026-04-17", "merchant": "선호영양제", "amount": 80000, "category": "의료비"}, {"id": 1776429429578, "date": "2026-04-17", "merchant": "룰루레몬", "amount": 129000, "category": "쇼핑"}, {"id": 1776429517986, "date": "2026-04-17", "merchant": "유니클로", "amount": 40000, "category": "쇼핑"}, {"id": 1776692338360, "date": "2026-04-20", "merchant": "정형외과", "amount": 167000, "category": "의료비"}, {"id": 1776692343506, "date": "2026-04-20", "merchant": "산부인과", "amount": 28000, "category": "의료비"}, {"id": 1776692453970, "date": "2026-04-20", "merchant": "네이비카운티", "amount": 68900, "category": "쇼핑"}, {"id": 1776695897941, "date": "2026-04-20", "merchant": "과일", "amount": 22000, "category": "쿠팡"}, {"id": 1776700219890, "date": "2026-04-21", "merchant": "룰루레몬", "amount": 33660, "category": "쇼핑"}, {"id": 1776749788786, "date": "2026-04-21", "merchant": "Economist", "amount": 139950, "category": "Subscription"}, {"id": 1776918144102, "date": "2026-04-22", "merchant": "치과", "amount": 18500, "category": "의료비"}, {"id": 1776918136230, "date": "2026-04-22", "merchant": "디팰 주차비", "amount": 21000, "category": "교통/통신비"}];
+        const MAY_BUDGET_BACKUP = {"totalLimit": 2000000, "categories": [{"name": "식비", "spent": 0, "limit": 450000, "colorHex": "#0EA5E9"}, {"name": "외식", "spent": 0, "limit": 150000, "colorHex": "#EF4444"}, {"name": "쿠팡", "limit": 600000, "colorHex": "#EAB308", "spent": 0}, {"name": "쇼핑", "spent": 0, "limit": 300000, "colorHex": "#ec4899"}, {"name": "의료비", "spent": 0, "limit": 100000, "colorHex": "#F97316"}, {"name": "교통/통신비", "limit": 100000, "colorHex": "#64748B", "spent": 0}, {"name": "공과금", "limit": 500000, "colorHex": "#10B981", "spent": 0}, {"name": "Subscription", "limit": 50000, "colorHex": "#A16207", "spent": 0}, {"name": "여가비", "spent": 0, "limit": 0, "colorHex": "#F59E0B"}, {"name": "기타", "spent": 0, "limit": 0, "colorHex": "#475569"}]};
 
         // --- CORE LOGIC ---
         async function bootstrap() {
@@ -508,6 +678,8 @@
                 document.getElementById('loading-fallback').style.opacity = '0';
                 setTimeout(() => document.getElementById('loading-fallback').style.display = 'none', 500);
             }, 1500);
+
+            initOCRScanner();
         }
 
         function switchView(viewId) {
@@ -527,29 +699,65 @@
             
             // --- IRONCLAD DATA HYDRATION ---
             const existingIds = new Set(state.transactionsState.map(tx => tx.id));
-            let added = 0;
+            let addedTx = 0;
             APRIL_BACKUP.forEach(tx => {
                 if (!existingIds.has(tx.id)) {
                     state.transactionsState.push(tx);
-                    added++;
+                    addedTx++;
                 }
             });
+
+            // Hydrate May Budget if missing or if it has default category names
+            let addedBudget = false;
+            const currentMayBudget = state.monthlyBudgetsState['2026-05'];
+            const isDefaultMay = !currentMayBudget || (currentMayBudget.categories && currentMayBudget.categories.some(c => c.name === '주거비'));
+            
+            if (isDefaultMay) {
+                state.monthlyBudgetsState['2026-05'] = JSON.parse(JSON.stringify(MAY_BUDGET_BACKUP));
+                addedBudget = true;
+                console.log("[Hydration] Forcing May Budget Backup (found default categories).");
+            }
 
             transactionsState = state.transactionsState || [];
             monthlyBudgetsState = state.monthlyBudgetsState || {};
             investmentsState = state.investmentsState || [];
 
-            if (added > 0) {
-                console.log(`[Hydration] Injected ${added} transactions.`);
-                saveData(); // Save merged state back to cloud
+            if (addedTx > 0 || addedBudget) {
+                console.log(`[Hydration] Injected ${addedTx} transactions and May budget.`);
+                saveData(true); // Silent save back to cloud
             }
             
             refreshAllUI();
         }
 
-        async function saveData() {
+        async function saveData(silent = false) {
+            if (!silent) showToast("Saving to cloud...", 1000);
             const state = { transactionsState, monthlyBudgetsState, investmentsState };
-            await dbClient.from('finance_storage').upsert({ user_id: currentUser.id, state, updated_at: new Date() });
+            const { error } = await dbClient.from('finance_storage').upsert({ user_id: currentUser.id, state, updated_at: new Date() });
+            
+            if (error) {
+                console.error("Save error:", error);
+                if (!silent) showToast("⚠️ Save failed! Please check connection.", 3000);
+            } else {
+                if (!silent) showToast("✅ Saved successfully", 1500);
+            }
+        }
+
+        function showToast(msg, duration = 2000) {
+            const container = document.getElementById('toast-container');
+            if (!container) {
+                const c = document.createElement('div');
+                c.id = 'toast-container';
+                document.body.appendChild(c);
+            }
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
         }
 
         function refreshAllUI() {
@@ -755,6 +963,193 @@
         window.formatCurrencyInput = (el) => {
             let val = el.value.replace(/[^0-9]/g, '');
             el.value = val.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        };
+
+        // --- OCR LOGIC ---
+        let ocrResults = [];
+
+        function initOCRScanner() {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+
+            if (!dropZone || !fileInput) return;
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+                dropZone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(evt => {
+                dropZone.addEventListener(evt, () => dropZone.classList.add('dragover'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(evt => {
+                dropZone.addEventListener(evt, () => dropZone.classList.remove('dragover'), false);
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length) processImageFile(files[0]);
+            }, false);
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) processImageFile(e.target.files[0]);
+            });
+        }
+
+        async function processImageFile(file) {
+            if (!file) return;
+            
+            document.getElementById('drop-zone').style.display = 'none';
+            document.getElementById('ocr-loading').style.display = 'block';
+            document.getElementById('ocr-preview').style.display = 'none';
+            
+            const progressFill = document.getElementById('ocr-progress');
+            const progressText = document.getElementById('ocr-progress-text');
+            const statusText = document.getElementById('ocr-status');
+
+            try {
+                const worker = await Tesseract.createWorker('kor+eng', 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const pct = Math.floor(m.progress * 100);
+                            progressFill.style.width = pct + '%';
+                            progressText.textContent = pct + '% 완료';
+                        } else {
+                            statusText.textContent = m.status + '...';
+                        }
+                    }
+                });
+
+                const { data: { text } } = await worker.recognize(file);
+                await worker.terminate();
+                
+                const results = parseKoreanReceiptText(text);
+                ocrResults = results;
+                showOCRPreview(results);
+            } catch (err) {
+                console.error("OCR Error:", err);
+                showToast("❌ OCR 분석 중 오류가 발생했습니다.", 3000);
+                resetOCR();
+            }
+        }
+
+        function parseKoreanReceiptText(text) {
+            console.log("Raw OCR Text:", text);
+            const lines = text.split('\n');
+            let date = new Date().toISOString().split('T')[0];
+            let merchant = "알 수 없는 가맹점";
+            let amount = 0;
+
+            // Date Extraction
+            const dateMatch = text.match(/202[0-9][.-/][0-1][0-9][.-/][0-3][0-9]/);
+            if (dateMatch) date = dateMatch[0].replace(/[./]/g, '-');
+
+            // Amount Extraction (Look for large numbers with currency markers)
+            const amountMatches = text.replace(/,/g, '').match(/\d{3,9}/g);
+            if (amountMatches) {
+                // Usually the largest number in a receipt is the total
+                amount = Math.max(...amountMatches.map(Number));
+            }
+
+            // Merchant Extraction (Simplified: first line that isn't date/tel)
+            for (let line of lines) {
+                line = line.trim();
+                if (line.length > 2 && !line.match(/[0-9-]{8,}/) && !line.includes('202')) {
+                    merchant = line;
+                    break;
+                }
+            }
+
+            // Category Guessing
+            let category = "기타";
+            const catMap = {
+                "식비": ["식당", "카페", "마트", "커피", "편의점", "GS25", "CU", "스타벅스"],
+                "교통비": ["택시", "버스", "지하철", "주유", "카카오T"],
+                "쇼핑": ["쿠팡", "마켓컬리", "무신사", "백화점"],
+                "의료비": ["병원", "약국", "의원"]
+            };
+
+            for (const [cat, keywords] of Object.entries(catMap)) {
+                if (keywords.some(k => merchant.includes(k))) {
+                    category = cat;
+                    break;
+                }
+            }
+
+            return [{ date, merchant, amount, category }];
+        }
+
+        function showOCRPreview(results) {
+            document.getElementById('ocr-loading').style.display = 'none';
+            document.getElementById('ocr-preview').style.display = 'block';
+            
+            const tbody = document.getElementById('parsed-tx-body');
+            tbody.innerHTML = results.map((res, i) => `
+                <tr>
+                    <td><input type="date" value="${res.date}" onchange="ocrResults[${i}].date = this.value"></td>
+                    <td><input type="text" value="${res.merchant}" onchange="ocrResults[${i}].merchant = this.value"></td>
+                    <td style="text-align: right;"><input type="text" value="${res.amount.toLocaleString()}" oninput="window.formatCurrencyInput(this); ocrResults[${i}].amount = parseInt(this.value.replace(/,/g,'')) || 0" style="text-align: right;"></td>
+                    <td>
+                        <select onchange="ocrResults[${i}].category = this.value" style="background:transparent; color:white; border:none; width:100%;">
+                            ${budgetState.categories.map(c => `<option value="${c.name}" ${res.category === c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.confirmOCR = () => {
+            ocrResults.forEach(res => {
+                transactionsState.push({
+                    id: Date.now() + Math.random(),
+                    merchant: res.merchant,
+                    amount: res.amount,
+                    category: res.category,
+                    date: res.date
+                });
+            });
+            saveData();
+            showToast(`✅ ${ocrResults.length}개의 내역이 추가되었습니다.`);
+            resetOCR();
+            refreshAllUI();
+        };
+
+        window.cancelOCR = () => {
+            resetOCR();
+        };
+
+        window.triggerAppAction = (action) => {
+            if (action === 'ocr_upload') {
+                switchView('budget');
+                document.getElementById('file-input').click();
+            }
+        };
+
+        function resetOCR() {
+            const container = document.getElementById('ocr-scanner-container');
+            const dropZone = document.getElementById('drop-zone');
+            const loading = document.getElementById('ocr-loading');
+            const preview = document.getElementById('ocr-preview');
+            
+            if (container) container.style.display = 'block';
+            if (dropZone) dropZone.style.display = 'flex';
+            if (loading) loading.style.display = 'none';
+            if (preview) preview.style.display = 'none';
+            
+            const fileInput = document.getElementById('file-input');
+            if (fileInput) fileInput.value = '';
+            ocrResults = [];
+        }
+
+        window.rescueMayData = () => {
+            if (!confirm("May 2026 예산 데이터를 강제로 복구하시겠습니까? (현재 설정이 덮어씌워집니다)")) return;
+            monthlyBudgetsState['2026-05'] = JSON.parse(JSON.stringify(MAY_BUDGET_BACKUP));
+            saveData();
+            refreshAllUI();
+            showToast("✅ May 2026 예산이 복구되었습니다.");
         };
 
         bootstrap();
