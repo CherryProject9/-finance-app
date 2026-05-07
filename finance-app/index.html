@@ -726,7 +726,7 @@
 
         async function saveData(silent = false) {
             console.log("[Data] Attempting to save state...", { transactionsCount: transactionsState.length });
-            if (!silent) showToast("Saving to cloud...", 1000);
+            if (!silent) alert("Debug Step 1: Preparing to send " + transactionsState.length + " transactions to cloud.");
             
             try {
                 const state = { transactionsState, monthlyBudgetsState, investmentsState };
@@ -738,17 +738,16 @@
                 
                 if (error) {
                     console.error("[Data] Save error:", error);
-                    alert("⚠️ Critical Save Error: " + error.message);
-                    if (!silent) showToast("⚠️ Save failed! Please check connection.", 3000);
+                    alert("Debug Step 2 (FAIL): Cloud rejected the save! Error: " + error.message);
                     return false;
                 } else {
                     console.log("[Data] Save successful.");
-                    if (!silent) showToast("✅ Saved successfully", 1500);
+                    if (!silent) alert("Debug Step 2 (SUCCESS): Cloud confirmed the save!");
                     return true;
                 }
             } catch (err) {
                 console.error("[Data] Unexpected error during save:", err);
-                alert("⚠️ Unexpected Error: " + err.message);
+                alert("Debug Step 2 (CRASH): Something went wrong in the browser! " + err.message);
                 return false;
             }
         }
