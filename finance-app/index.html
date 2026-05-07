@@ -284,6 +284,11 @@
     </script>
 </head>
 <body data-active-view="dashboard">
+    <!-- CACHE BUSTER MARKER -->
+    <div style="position:fixed; top:0; left:0; right:0; background:#ef4444; color:white; text-align:center; padding:10px; font-size:14px; font-weight:900; z-index:9999999; border-bottom: 2px solid white;">
+        v203-FIX: CACHE CLEARED - DATA SAVING ACTIVE
+    </div>
+
     <!-- Auth Overlay -->
     <div id="auth-overlay" style="display: flex;">
         <div class="auth-card">
@@ -359,7 +364,7 @@
             <header class="header">
                 <div style="display:flex; align-items:center; gap:8px;">
                     <h1 id="view-title">Dashboard</h1>
-                    <span style="font-size: 10px; background: var(--accent-glow); color: var(--accent-primary); padding: 2px 6px; border-radius: 4px; font-weight: 800;">v202-OCR</span>
+                    <span style="font-size: 10px; background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 800;">v203-FIX</span>
                 </div>
                 
                 <div id="global-month-nav" style="display: flex; align-items: center; gap: 1rem;">
@@ -372,7 +377,8 @@
                     </button>
                 </div>
 
-                <div style="display: flex; gap: 8px;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <div id="sync-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; margin-right: 8px; box-shadow: 0 0 8px #10b981;" title="Cloud Synced"></div>
                     <button class="btn btn-primary" onclick="window.triggerAppAction('ocr_upload')" style="background: var(--accent-primary); border: none; padding: 10px 16px; display: flex; align-items: center; gap: 8px;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18" style="stroke: white;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                         <span style="font-size: 12px; font-weight: 900;">SCAN RECEIPT</span>
@@ -675,10 +681,27 @@
         }
 
         async function loadData() {
-            const { data, error } = await dbClient.from('finance_storage').select('state').eq('user_id', currentUser.id).maybeSingle();
-            if (error) console.error(error);
+            let cloudData = null;
+            try {
+                const { data, error } = await dbClient.from('finance_storage').select('state').eq('user_id', currentUser.id).maybeSingle();
+                if (error) console.error("[Cloud] Fetch error:", error);
+                else cloudData = data;
+            } catch (e) { console.error("[Cloud] Connection failed:", e); }
+
+            // Check Local Backup
+            let localBackup = null;
+            try {
+                const raw = localStorage.getItem(`financeOS_backup_${currentUser.id}`);
+                if (raw) localBackup = JSON.parse(raw);
+            } catch (e) {}
+
+            let state = (cloudData && cloudData.state) || localBackup || { transactionsState: [], monthlyBudgetsState: {}, investmentsState: [] };
             
-            let state = (data && data.state) || { transactionsState: [], monthlyBudgetsState: {}, investmentsState: [] };
+            // If local backup is newer/has more data, prefer it
+            if (localBackup && localBackup.transactionsState && (!cloudData || localBackup.transactionsState.length > cloudData.state.transactionsState.length)) {
+                console.log("[Data] Local backup is more comprehensive. Using it.");
+                state = localBackup;
+            }
             
             // --- IRONCLAD DATA HYDRATION ---
             const existingIds = new Set(state.transactionsState.map(tx => tx.id));
@@ -708,25 +731,31 @@
         }
 
         async function saveData(silent = false) {
-            if (!silent) showToast("Saving to cloud...", 1000);
+            const state = { transactionsState, monthlyBudgetsState, investmentsState };
+            
+            // 1. Local Backup (Immediate)
+            localStorage.setItem(`financeOS_backup_${currentUser.id}`, JSON.stringify(state));
+
+            // 2. Cloud Sync
+            const indicator = document.getElementById('sync-indicator');
+            if (indicator) indicator.style.background = '#f59e0b'; // Yellow (Syncing)
+
             try {
-                const state = { transactionsState, monthlyBudgetsState, investmentsState };
-                const { error } = await dbClient.from('finance_storage').upsert({ 
-                    user_id: currentUser.id, 
-                    state, 
-                    updated_at: new Date().toISOString() 
-                });
+                const { error } = await dbClient.from('finance_storage').upsert(
+                    { user_id: currentUser.id, state, updated_at: new Date().toISOString() },
+                    { onConflict: 'user_id' }
+                );
                 
                 if (error) {
-                    console.error("[Data] Save error:", error);
-                    if (!silent) showToast("⚠️ Save failed!", 3000);
+                    console.error("[Cloud] Save error:", error);
+                    if (indicator) indicator.style.background = '#ef4444'; // Red (Error)
                     return false;
                 } else {
-                    if (!silent) showToast("✅ Saved successfully", 1500);
+                    if (indicator) indicator.style.background = '#10b981'; // Green (Success)
                     return true;
                 }
             } catch (err) {
-                console.error("[Data] Crash:", err);
+                if (indicator) indicator.style.background = '#ef4444';
                 return false;
             }
         }
