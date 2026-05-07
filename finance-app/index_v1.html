@@ -725,15 +725,31 @@
         }
 
         async function saveData(silent = false) {
+            console.log("[Data] Attempting to save state...", { transactionsCount: transactionsState.length });
             if (!silent) showToast("Saving to cloud...", 1000);
-            const state = { transactionsState, monthlyBudgetsState, investmentsState };
-            const { error } = await dbClient.from('finance_storage').upsert({ user_id: currentUser.id, state, updated_at: new Date() });
             
-            if (error) {
-                console.error("Save error:", error);
-                if (!silent) showToast("⚠️ Save failed! Please check connection.", 3000);
-            } else {
-                if (!silent) showToast("✅ Saved successfully", 1500);
+            try {
+                const state = { transactionsState, monthlyBudgetsState, investmentsState };
+                const { data, error } = await dbClient.from('finance_storage').upsert({ 
+                    user_id: currentUser.id, 
+                    state, 
+                    updated_at: new Date().toISOString() 
+                });
+                
+                if (error) {
+                    console.error("[Data] Save error:", error);
+                    alert("⚠️ Critical Save Error: " + error.message);
+                    if (!silent) showToast("⚠️ Save failed! Please check connection.", 3000);
+                    return false;
+                } else {
+                    console.log("[Data] Save successful.");
+                    if (!silent) showToast("✅ Saved successfully", 1500);
+                    return true;
+                }
+            } catch (err) {
+                console.error("[Data] Unexpected error during save:", err);
+                alert("⚠️ Unexpected Error: " + err.message);
+                return false;
             }
         }
 
@@ -926,18 +942,43 @@
             modal.style.display = 'flex';
         };
 
-        window.saveTransactionFromModal = () => {
-            const merchant = document.getElementById('tx-merchant').value;
-            const amount = parseInt(document.getElementById('tx-amount').value.replace(/,/g, '')) || 0;
-            const category = document.getElementById('tx-category').value;
-            const date = document.getElementById('tx-date').value;
+        window.saveTransactionFromModal = async () => {
+            const merchantInput = document.getElementById('tx-merchant');
+            const amountInput = document.getElementById('tx-amount');
+            const categoryInput = document.getElementById('tx-category');
+            const dateInput = document.getElementById('tx-date');
 
-            if (!merchant || amount <= 0) return alert("Valid data please");
+            const merchant = merchantInput.value.trim();
+            const amount = parseInt(amountInput.value.replace(/,/g, '')) || 0;
+            const category = categoryInput.value;
+            const date = dateInput.value;
 
-            transactionsState.push({ id: Date.now(), merchant, amount, category, date });
-            saveData();
-            document.getElementById('modal-tx-detail').style.display = 'none';
-            refreshAllUI();
+            console.log("[Entry] Attempting to save transaction:", { merchant, amount, category, date });
+
+            if (!merchant) return alert("Please enter a merchant name.");
+            if (amount <= 0) return alert("Please enter a valid amount.");
+            if (!date) return alert("Please select a date.");
+
+            const newTx = { 
+                id: Date.now() + Math.random(), 
+                merchant, 
+                amount, 
+                category, 
+                date,
+                type: 'expense' 
+            };
+
+            transactionsState.push(newTx);
+            
+            const success = await saveData();
+            if (success) {
+                document.getElementById('modal-tx-detail').style.display = 'none';
+                refreshAllUI();
+            } else {
+                // Remove the failed transaction from local state so it doesn't get stuck
+                transactionsState.pop();
+                alert("Transaction could not be saved to the cloud. Please try again.");
+            }
         };
 
         window.updateLimit = (idx, val) => {
