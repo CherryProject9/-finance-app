@@ -554,8 +554,9 @@
             <!-- Settings View -->
             <section id="settings" class="view-section">
                 <div class="card glass" style="max-width: 500px; margin: 0 auto;">
-                    <h3>Rescue Tools</h3>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">If your data is missing, click below to force-restore the April backup.</p>
+                    <h3>Data Management</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Download a local copy of your data or restore from a backup.</p>
+                    <button class="btn btn-primary" onclick="window.downloadState()" style="width: 100%; margin-bottom: 10px; padding: 16px;">DOWNLOAD JSON BACKUP</button>
                     <button class="btn" onclick="window.forceRescueData()" style="width: 100%; background: #ef4444; color: white; padding: 16px;">RESCUE APRIL DATA (67 TX)</button>
                 </div>
             </section>
@@ -749,16 +750,30 @@
                 if (error) {
                     console.error("[Cloud] Save error:", error);
                     if (indicator) indicator.style.background = '#ef4444'; // Red (Error)
+                    if (!silent) alert("Cloud Error: " + error.message + " (Code: " + error.code + ")");
                     return false;
                 } else {
                     if (indicator) indicator.style.background = '#10b981'; // Green (Success)
                     return true;
                 }
             } catch (err) {
+                console.error("[Cloud] Crash:", err);
                 if (indicator) indicator.style.background = '#ef4444';
+                if (!silent) alert("App Crash during save: " + err.message);
                 return false;
             }
         }
+        
+        window.downloadState = () => {
+            const state = { transactionsState, monthlyBudgetsState, investmentsState };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 4));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `cherry_money_backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        };
 
         function showToast(msg, duration = 2000) {
             const container = document.getElementById('toast-container');
