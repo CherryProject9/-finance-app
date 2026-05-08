@@ -769,33 +769,19 @@
             if (indicator) indicator.style.background = '#f59e0b'; // Yellow (Syncing)
 
             try {
-                // Manual Upsert: Select first to find the record ID
-                const { data: existing, error: fetchError } = await dbClient
+                // FORCE INSERT: Always create a new record to avoid update/upsert conflicts
+                const { error } = await dbClient
                     .from('finance_storage')
-                    .select('id')
-                    .eq('user_id', currentUser.id)
-                    .maybeSingle();
-
-                let resultError = null;
-                if (existing && existing.id) {
-                    // Update existing
-                    const { error } = await dbClient
-                        .from('finance_storage')
-                        .update({ state, updated_at: new Date().toISOString() })
-                        .eq('id', existing.id);
-                    resultError = error;
-                } else {
-                    // Insert new
-                    const { error } = await dbClient
-                        .from('finance_storage')
-                        .insert({ user_id: currentUser.id, state, updated_at: new Date().toISOString() });
-                    resultError = error;
-                }
+                    .insert({ 
+                        user_id: currentUser.id, 
+                        state, 
+                        updated_at: new Date().toISOString() 
+                    });
                 
-                if (resultError) {
-                    console.error("[Cloud] Save error:", resultError);
+                if (error) {
+                    console.error("[Cloud] Save error:", error);
                     if (indicator) indicator.style.background = '#ef4444'; // Red (Error)
-                    if (!silent) alert("Cloud Error: " + resultError.message);
+                    if (!silent) alert("Cloud Error: " + error.message);
                     return false;
                 } else {
                     if (indicator) indicator.style.background = '#10b981'; // Green (Success)
