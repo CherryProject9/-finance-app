@@ -684,9 +684,19 @@
         async function loadData() {
             let cloudData = null;
             try {
-                const { data, error } = await dbClient.from('finance_storage').select('state').eq('user_id', currentUser.id).maybeSingle();
-                if (error) console.error("[Cloud] Fetch error:", error);
-                else cloudData = data;
+                // Fetch the MOST RECENT record for this user
+                const { data, error } = await dbClient
+                    .from('finance_storage')
+                    .select('state')
+                    .eq('user_id', currentUser.id)
+                    .order('updated_at', { ascending: false })
+                    .limit(1);
+
+                if (error) {
+                    console.error("[Cloud] Fetch error:", error);
+                } else if (data && data.length > 0) {
+                    cloudData = data[0];
+                }
             } catch (e) { console.error("[Cloud] Connection failed:", e); }
 
             // Check Local Backup
