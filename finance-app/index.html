@@ -540,6 +540,22 @@
             </section>
 
             <!-- Settings View -->
+            <!-- Category Detail View -->
+            <section id="category-detail" class="view-section">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+                    <button class="btn btn-icon" onclick="window.switchView('budget')" style="background: var(--bg-secondary); border: 1px solid rgba(0,0,0,0.05);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <h2 id="cat-detail-title" style="margin: 0;">Category Name</h2>
+                </div>
+                
+                <div class="card glass">
+                    <div id="cat-detail-list">
+                        <!-- Transactions render here -->
+                    </div>
+                </div>
+            </section>
+
             <section id="settings" class="view-section">
                 <div class="card glass" style="max-width: 500px; margin: 0 auto;">
                     <h3>Data Management</h3>
@@ -856,10 +872,10 @@
                 const pct = Math.min((catSpent / cat.limit) * 100, 100);
                 
                 return `
-                    <div style="margin-bottom: 1.25rem;">
+                    <div style="margin-bottom: 1.25rem; cursor: pointer;" onclick="window.openCategoryDetail('${cat.name}')">
                         <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem; font-weight:700; font-size:0.85rem;">
                             <span>${cat.name}</span>
-                            <span>₩${catSpent.toLocaleString()} / ${isEditingLimits ? `<input type="number" value="${cat.limit}" onchange="window.updateLimit(${idx}, this.value)" style="width:80px; text-align:right;">` : `₩${cat.limit.toLocaleString()}`}</span>
+                            <span>₩${catSpent.toLocaleString()} / ${isEditingLimits ? `<input type="number" value="${cat.limit}" onchange="event.stopPropagation(); window.updateLimit(${idx}, this.value)" style="width:80px; text-align:right;">` : `₩${cat.limit.toLocaleString()}`}</span>
                         </div>
                         <div class="cat-progress-track">
                             <div class="cat-progress-bar" style="width:${pct}%; background:${cat.colorHex};"></div>
@@ -960,21 +976,8 @@
             renderBudgetUI();
         };
 
-        window.showAddTransactionModal = () => {
-            const modal = document.getElementById('modal-tx-detail');
-            const catSelect = document.getElementById('tx-category');
-            
-            // Fix: Use current month's categories if available
-            const budget = monthlyBudgetsState[currentMonthView] || budgetState;
-            catSelect.innerHTML = budget.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-            
-            document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('tx-merchant').value = '';
-            document.getElementById('tx-amount').value = '';
-            modal.style.display = 'flex';
-        };
-
         window.saveTransactionFromModal = async () => {
+            const idInput = document.getElementById('modal-tx-detail').dataset.editingId;
             const merchantInput = document.getElementById('tx-merchant');
             const amountInput = document.getElementById('tx-amount');
             const categoryInput = document.getElementById('tx-category');
@@ -985,32 +988,115 @@
             const category = categoryInput.value;
             const date = dateInput.value;
 
-            console.log("[Entry] Attempting to save transaction:", { merchant, amount, category, date });
-
             if (!merchant) return alert("Please enter a merchant name.");
             if (amount <= 0) return alert("Please enter a valid amount.");
             if (!date) return alert("Please select a date.");
 
-            const newTx = { 
-                id: Date.now() + Math.random(), 
-                merchant, 
-                amount, 
-                category, 
-                date,
-                type: 'expense' 
-            };
-
-            transactionsState.push(newTx);
+            if (idInput) {
+                // Update existing
+                const idx = transactionsState.findIndex(t => t.id == idInput);
+                if (idx !== -1) {
+                    transactionsState[idx] = { ...transactionsState[idx], merchant, amount, category, date };
+                }
+            } else {
+                // Add new
+                const newTx = { 
+                    id: Date.now() + Math.random(), 
+                    merchant, 
+                    amount, 
+                    category, 
+                    date,
+                    type: 'expense' 
+                };
+                transactionsState.push(newTx);
+            }
             
             const success = await saveData();
             if (success) {
                 document.getElementById('modal-tx-detail').style.display = 'none';
                 refreshAllUI();
+                // If we were in category detail, refresh that too
+                if (document.getElementById('category-detail').classList.contains('active')) {
+                    window.openCategoryDetail(category);
+                }
             } else {
-                // Remove the failed transaction from local state so it doesn't get stuck
-                transactionsState.pop();
-                alert("Transaction could not be saved to the cloud. Please try again.");
+                alert("Transaction could not be saved to the cloud.");
             }
+        };
+
+        window.openCategoryDetail = (catName) => {
+            const container = document.getElementById('cat-detail-list');
+            const title = document.getElementById('cat-detail-title');
+            title.textContent = catName;
+
+            const txs = transactionsState.filter(tx => tx.category === catName && tx.date.startsWith(currentMonthView));
+            txs.sort((a,b) => b.date.localeCompare(a.date));
+
+            container.innerHTML = txs.map(tx => `
+                <div class="li-row" style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid rgba(0,0,0,0.05);">
+                    <div style="flex:1;">
+                        <div class="li-merchant" style="font-size:1rem;">${tx.merchant}</div>
+                        <div class="li-sub">${tx.date}</div>
+                    </div>
+                    <div style="text-align:right; margin-right:15px;">
+                        <div class="budget-amount-cell" style="font-size:1rem; font-weight:700;">₩${tx.amount.toLocaleString()}</div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn" onclick="window.editTransaction(${tx.id})" style="padding:6px 10px; background:var(--bg-primary); border:none; font-size:0.75rem;">Edit</button>
+                        <button class="btn" onclick="window.deleteTransaction(${tx.id})" style="padding:6px 10px; background:#fee2e2; color:#ef4444; border:none; font-size:0.75rem;">Delete</button>
+                    </div>
+                </div>
+            `).join('') || '<div style="text-align:center; padding:2rem; color:var(--text-muted);">No transactions in this category.</div>';
+
+            window.switchView('category-detail');
+        };
+
+        window.deleteTransaction = async (id) => {
+            if (!confirm("Delete this transaction?")) return;
+            const idx = transactionsState.findIndex(tx => tx.id == id);
+            if (idx === -1) return;
+            
+            const category = transactionsState[idx].category;
+            transactionsState.splice(idx, 1);
+            const success = await saveData();
+            if (success) {
+                window.openCategoryDetail(category);
+                refreshAllUI();
+            }
+        };
+
+        window.editTransaction = (id) => {
+            const tx = transactionsState.find(t => t.id == id);
+            if (!tx) return;
+
+            const modal = document.getElementById('modal-tx-detail');
+            modal.dataset.editingId = id;
+            document.getElementById('modal-title').textContent = "Edit Transaction";
+            
+            const catSelect = document.getElementById('tx-category');
+            const budget = monthlyBudgetsState[currentMonthView] || budgetState;
+            catSelect.innerHTML = budget.categories.map(c => `<option value="${c.name}" ${c.name === tx.category ? 'selected' : ''}>${c.name}</option>`).join('');
+            
+            document.getElementById('tx-date').value = tx.date;
+            document.getElementById('tx-merchant').value = tx.merchant;
+            document.getElementById('tx-amount').value = tx.amount;
+            
+            modal.style.display = 'flex';
+        };
+
+        window.showAddTransactionModal = () => {
+            const modal = document.getElementById('modal-tx-detail');
+            delete modal.dataset.editingId;
+            document.getElementById('modal-title').textContent = "Add Transaction";
+            
+            const catSelect = document.getElementById('tx-category');
+            const budget = monthlyBudgetsState[currentMonthView] || budgetState;
+            catSelect.innerHTML = budget.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            
+            document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('tx-merchant').value = '';
+            document.getElementById('tx-amount').value = '';
+            modal.style.display = 'flex';
         };
 
         window.updateLimit = (idx, val) => {
