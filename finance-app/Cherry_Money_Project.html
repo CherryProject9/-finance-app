@@ -284,11 +284,6 @@
     </script>
 </head>
 <body data-active-view="dashboard">
-    <!-- CACHE BUSTER MARKER -->
-    <div style="position:fixed; top:0; left:0; right:0; background:#ef4444; color:white; text-align:center; padding:10px; font-size:14px; font-weight:900; z-index:9999999; border-bottom: 2px solid white;">
-        v203-FIX: CACHE CLEARED - DATA SAVING ACTIVE
-    </div>
-
     <!-- Auth Overlay -->
     <div id="auth-overlay" style="display: flex;">
         <div class="auth-card">
@@ -364,7 +359,6 @@
             <header class="header">
                 <div style="display:flex; align-items:center; gap:8px;">
                     <h1 id="view-title">Dashboard</h1>
-                    <span style="font-size: 10px; background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 800;">v203-FIX</span>
                 </div>
                 
                 <div id="global-month-nav" style="display: flex; align-items: center; gap: 1rem;">
@@ -553,16 +547,6 @@
 
             <!-- Settings View -->
             <section id="settings" class="view-section">
-                <div class="card glass" style="max-width: 500px; margin: 0 auto; margin-bottom: 20px;">
-                    <h3>Sync Diagnostic</h3>
-                    <div style="font-size: 0.8rem; line-height: 1.6; background: rgba(0,0,0,0.05); padding: 15px; border-radius: 8px;">
-                        <div><strong>Email:</strong> <span id="diag-email">Loading...</span></div>
-                        <div><strong>User ID:</strong> <span id="diag-id" style="word-break: break-all; font-family: monospace;">Loading...</span></div>
-                        <div><strong>Saves in Cloud:</strong> <span id="diag-saves">Checking...</span></div>
-                        <button class="btn" onclick="window.peekCloud()" style="margin-top: 10px; padding: 5px 10px; font-size: 10px; background: #6366f1; color: white; border: none; border-radius: 4px;">PEEK AT CLOUD DATA</button>
-                    </div>
-                </div>
-
                 <div class="card glass" style="max-width: 500px; margin: 0 auto;">
                     <h3>Data Management</h3>
                     <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Download a local copy of your data or restore from a backup.</p>
@@ -769,33 +753,19 @@
             if (indicator) indicator.style.background = '#f59e0b'; // Yellow (Syncing)
 
             try {
-                // Manual Upsert: Select first to find the record ID
-                const { data: existing, error: fetchError } = await dbClient
+                // FORCE INSERT: Always create a new record to avoid update/upsert conflicts
+                const { error } = await dbClient
                     .from('finance_storage')
-                    .select('id')
-                    .eq('user_id', currentUser.id)
-                    .maybeSingle();
-
-                let resultError = null;
-                if (existing && existing.id) {
-                    // Update existing
-                    const { error } = await dbClient
-                        .from('finance_storage')
-                        .update({ state, updated_at: new Date().toISOString() })
-                        .eq('id', existing.id);
-                    resultError = error;
-                } else {
-                    // Insert new
-                    const { error } = await dbClient
-                        .from('finance_storage')
-                        .insert({ user_id: currentUser.id, state, updated_at: new Date().toISOString() });
-                    resultError = error;
-                }
+                    .insert({ 
+                        user_id: currentUser.id, 
+                        state, 
+                        updated_at: new Date().toISOString() 
+                    });
                 
-                if (resultError) {
-                    console.error("[Cloud] Save error:", resultError);
+                if (error) {
+                    console.error("[Cloud] Save error:", error);
                     if (indicator) indicator.style.background = '#ef4444'; // Red (Error)
-                    if (!silent) alert("Cloud Error: " + resultError.message);
+                    if (!silent) alert("Cloud Error: " + error.message);
                     return false;
                 } else {
                     if (indicator) indicator.style.background = '#10b981'; // Green (Success)
@@ -808,15 +778,15 @@
             }
         }
         
-        window.peekCloud = async () => {
-            if (!currentUser) return alert("Not logged in.");
-            const { data, error } = await dbClient.from('finance_storage').select('state').eq('user_id', currentUser.id).order('updated_at', { ascending: false }).limit(1);
-            if (error) return alert("Error fetching: " + error.message);
-            if (!data || data.length === 0) return alert("No cloud data found for this ID.");
-            
-            const txs = data[0].state.transactionsState || [];
-            const summary = txs.slice(0, 5).map(t => `${t.date}: ${t.merchant} (₩${t.amount})`).join('\n');
-            alert(`Found ${txs.length} transactions in Cloud.\n\nLatest 5:\n${summary || 'None'}`);
+        window.downloadState = () => {
+            const state = { transactionsState, monthlyBudgetsState, investmentsState };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 4));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `cherry_money_backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
         };
 
         function showToast(msg, duration = 2000) {

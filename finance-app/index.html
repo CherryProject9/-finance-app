@@ -284,11 +284,6 @@
     </script>
 </head>
 <body data-active-view="dashboard">
-    <!-- CACHE BUSTER MARKER -->
-    <div style="position:fixed; top:0; left:0; right:0; background:#ef4444; color:white; text-align:center; padding:10px; font-size:14px; font-weight:900; z-index:9999999; border-bottom: 2px solid white;">
-        v203-FIX: CACHE CLEARED - DATA SAVING ACTIVE
-    </div>
-
     <!-- Auth Overlay -->
     <div id="auth-overlay" style="display: flex;">
         <div class="auth-card">
@@ -364,7 +359,6 @@
             <header class="header">
                 <div style="display:flex; align-items:center; gap:8px;">
                     <h1 id="view-title">Dashboard</h1>
-                    <span style="font-size: 10px; background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 800;">v203-FIX</span>
                 </div>
                 
                 <div id="global-month-nav" style="display: flex; align-items: center; gap: 1rem;">
@@ -684,9 +678,26 @@
         async function loadData() {
             let cloudData = null;
             try {
-                const { data, error } = await dbClient.from('finance_storage').select('state').eq('user_id', currentUser.id).maybeSingle();
-                if (error) console.error("[Cloud] Fetch error:", error);
-                else cloudData = data;
+                // Fetch the MOST RECENT record for this user
+                const { data, error } = await dbClient
+                    .from('finance_storage')
+                    .select('state')
+                    .eq('user_id', currentUser.id)
+                    .order('updated_at', { ascending: false })
+                    .limit(1);
+
+                if (error) {
+                    console.error("[Cloud] Fetch error:", error);
+                    alert("Cloud Fetch Error: " + error.message);
+                } else if (data && data.length > 0) {
+                    cloudData = data[0];
+                    console.log("[Cloud] Loaded state with " + cloudData.state.transactionsState.length + " transactions.");
+                }
+
+                // Update Diagnostics UI
+                document.getElementById('diag-email').textContent = currentUser.email;
+                document.getElementById('diag-id').textContent = currentUser.id;
+                document.getElementById('diag-saves').textContent = data ? data.length : 0;
             } catch (e) { console.error("[Cloud] Connection failed:", e); }
 
             // Check Local Backup
@@ -742,15 +753,19 @@
             if (indicator) indicator.style.background = '#f59e0b'; // Yellow (Syncing)
 
             try {
-                const { error } = await dbClient.from('finance_storage').upsert(
-                    { user_id: currentUser.id, state, updated_at: new Date().toISOString() },
-                    { onConflict: 'user_id' }
-                );
+                // FORCE INSERT: Always create a new record to avoid update/upsert conflicts
+                const { error } = await dbClient
+                    .from('finance_storage')
+                    .insert({ 
+                        user_id: currentUser.id, 
+                        state, 
+                        updated_at: new Date().toISOString() 
+                    });
                 
                 if (error) {
                     console.error("[Cloud] Save error:", error);
                     if (indicator) indicator.style.background = '#ef4444'; // Red (Error)
-                    if (!silent) alert("Cloud Error: " + error.message + " (Code: " + error.code + ")");
+                    if (!silent) alert("Cloud Error: " + error.message);
                     return false;
                 } else {
                     if (indicator) indicator.style.background = '#10b981'; // Green (Success)
@@ -759,7 +774,6 @@
             } catch (err) {
                 console.error("[Cloud] Crash:", err);
                 if (indicator) indicator.style.background = '#ef4444';
-                if (!silent) alert("App Crash during save: " + err.message);
                 return false;
             }
         }
