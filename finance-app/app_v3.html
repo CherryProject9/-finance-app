@@ -742,15 +742,33 @@
             if (indicator) indicator.style.background = '#f59e0b'; // Yellow (Syncing)
 
             try {
-                const { error } = await dbClient.from('finance_storage').upsert(
-                    { user_id: currentUser.id, state, updated_at: new Date().toISOString() },
-                    { onConflict: 'user_id' }
-                );
+                // Manual Upsert: Select first to find the record ID
+                const { data: existing, error: fetchError } = await dbClient
+                    .from('finance_storage')
+                    .select('id')
+                    .eq('user_id', currentUser.id)
+                    .maybeSingle();
+
+                let resultError = null;
+                if (existing && existing.id) {
+                    // Update existing
+                    const { error } = await dbClient
+                        .from('finance_storage')
+                        .update({ state, updated_at: new Date().toISOString() })
+                        .eq('id', existing.id);
+                    resultError = error;
+                } else {
+                    // Insert new
+                    const { error } = await dbClient
+                        .from('finance_storage')
+                        .insert({ user_id: currentUser.id, state, updated_at: new Date().toISOString() });
+                    resultError = error;
+                }
                 
-                if (error) {
-                    console.error("[Cloud] Save error:", error);
+                if (resultError) {
+                    console.error("[Cloud] Save error:", resultError);
                     if (indicator) indicator.style.background = '#ef4444'; // Red (Error)
-                    if (!silent) alert("Cloud Error: " + error.message + " (Code: " + error.code + ")");
+                    if (!silent) alert("Cloud Error: " + resultError.message);
                     return false;
                 } else {
                     if (indicator) indicator.style.background = '#10b981'; // Green (Success)
@@ -759,7 +777,6 @@
             } catch (err) {
                 console.error("[Cloud] Crash:", err);
                 if (indicator) indicator.style.background = '#ef4444';
-                if (!silent) alert("App Crash during save: " + err.message);
                 return false;
             }
         }
