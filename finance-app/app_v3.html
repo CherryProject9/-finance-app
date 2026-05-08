@@ -801,8 +801,10 @@
             if (!data || data.length === 0) return alert("No cloud data found for this ID.");
             
             const txs = data[0].state.transactionsState || [];
-            const summary = txs.slice(0, 5).map(t => `${t.date}: ${t.merchant} (₩${t.amount})`).join('\n');
-            alert(`Found ${txs.length} transactions in Cloud.\n\nLatest 5:\n${summary || 'None'}`);
+            // Sort by date DESC to show newest first
+            const sorted = txs.slice().sort((a,b) => (b.date || "").localeCompare(a.date || ""));
+            const summary = sorted.slice(0, 10).map(t => `${t.date || 'No Date'}: ${t.merchant} (₩${t.amount})`).join('\n');
+            alert(`Found ${txs.length} transactions in Cloud.\n\nLatest 10 (Sorted by Date):\n${summary || 'None'}`);
         };
 
         window.downloadState = () => {
