@@ -553,6 +553,15 @@
 
             <!-- Settings View -->
             <section id="settings" class="view-section">
+                <div class="card glass" style="max-width: 500px; margin: 0 auto; margin-bottom: 20px;">
+                    <h3>Sync Diagnostic</h3>
+                    <div style="font-size: 0.8rem; line-height: 1.6; background: rgba(0,0,0,0.05); padding: 15px; border-radius: 8px;">
+                        <div><strong>Email:</strong> <span id="diag-email">Loading...</span></div>
+                        <div><strong>User ID:</strong> <span id="diag-id" style="word-break: break-all; font-family: monospace;">Loading...</span></div>
+                        <div><strong>Saves in Cloud:</strong> <span id="diag-saves">Checking...</span></div>
+                    </div>
+                </div>
+
                 <div class="card glass" style="max-width: 500px; margin: 0 auto;">
                     <h3>Data Management</h3>
                     <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Download a local copy of your data or restore from a backup.</p>
@@ -694,9 +703,16 @@
 
                 if (error) {
                     console.error("[Cloud] Fetch error:", error);
+                    alert("Cloud Fetch Error: " + error.message);
                 } else if (data && data.length > 0) {
                     cloudData = data[0];
+                    console.log("[Cloud] Loaded state with " + cloudData.state.transactionsState.length + " transactions.");
                 }
+
+                // Update Diagnostics UI
+                document.getElementById('diag-email').textContent = currentUser.email;
+                document.getElementById('diag-id').textContent = currentUser.id;
+                document.getElementById('diag-saves').textContent = data ? data.length : 0;
             } catch (e) { console.error("[Cloud] Connection failed:", e); }
 
             // Check Local Backup

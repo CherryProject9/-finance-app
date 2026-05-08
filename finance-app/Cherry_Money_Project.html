@@ -284,9 +284,9 @@
     </script>
 </head>
 <body data-active-view="dashboard">
-    <!-- Version Marker for Cache Debugging -->
-    <div style="position:fixed; top:0; left:0; right:0; background:#6366f1; color:white; text-align:center; padding:4px; font-size:10px; font-weight:900; z-index:1000000; pointer-events:none;">
-        Cherry Money v202-OCR (LATEST) - If you see this, the app is updated.
+    <!-- CACHE BUSTER MARKER -->
+    <div style="position:fixed; top:0; left:0; right:0; background:#ef4444; color:white; text-align:center; padding:10px; font-size:14px; font-weight:900; z-index:9999999; border-bottom: 2px solid white;">
+        v203-FIX: CACHE CLEARED - DATA SAVING ACTIVE
     </div>
 
     <!-- Auth Overlay -->
@@ -313,14 +313,6 @@
             <input type="password" id="auth-password" class="modern-input" placeholder="Password" style="background: #222; border: 1px solid #333; color: #fff; margin-bottom: 24px;">
             <button class="auth-button" onclick="window.handleEmailAuth('login')" style="background: var(--accent-primary); color: #fff; margin-bottom: 0;">Sign In</button>
             <p style="margin-top: 16px; font-size: 12px; color: #666;">Don't have an account? <span style="color: var(--accent-primary); cursor: pointer; text-decoration: underline;" onclick="window.handleEmailAuth('signup')">Sign Up</span></p>
-        </div>
-    </div>
-
-    <!-- v101: Fallback -->
-    <div id="loading-fallback" style="position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:9999999;background:#0f172a;">
-        <div style="text-align:center; color: white;">
-            <div style="font-size:24px;margin-bottom:10px;font-weight:800;">Cherry Money</div>
-            <div style="font-size:14px;opacity:0.6;">Stabilizing State... (v202-OCR)</div>
         </div>
     </div>
 
@@ -372,7 +364,7 @@
             <header class="header">
                 <div style="display:flex; align-items:center; gap:8px;">
                     <h1 id="view-title">Dashboard</h1>
-                    <span style="font-size: 10px; background: var(--accent-glow); color: var(--accent-primary); padding: 2px 6px; border-radius: 4px; font-weight: 800;">v202-OCR</span>
+                    <span style="font-size: 10px; background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 800;">v203-FIX</span>
                 </div>
                 
                 <div id="global-month-nav" style="display: flex; align-items: center; gap: 1rem;">
@@ -385,8 +377,9 @@
                     </button>
                 </div>
 
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-icon" id="btn-upload-header-proxy" title="OCR Upload" onclick="window.triggerAppAction('ocr_upload')" style="background: #6366f1 !important; color: white !important; border: none; padding: 10px 20px; border-radius: 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <div id="sync-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; margin-right: 8px; box-shadow: 0 0 8px #10b981;" title="Cloud Synced"></div>
+                    <button class="btn btn-primary" onclick="window.triggerAppAction('ocr_upload')" style="background: var(--accent-primary); border: none; padding: 10px 16px; display: flex; align-items: center; gap: 8px;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18" style="stroke: white;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                         <span style="font-size: 12px; font-weight: 900;">SCAN RECEIPT</span>
                     </button>
@@ -504,9 +497,6 @@
                     <div id="budget-category-list">
                         <!-- JS renders here -->
                     </div>
-                    <div style="margin-top: 1.5rem; text-align: center; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
-                        <span style="font-size: 0.7rem; color: var(--text-muted); cursor: pointer; text-decoration: underline;" onclick="window.rescueMayData()">May 2026 데이터가 안 보이나요? (복구하기)</span>
-                    </div>
                 </div>
 
                 <div class="card glass">
@@ -563,9 +553,20 @@
 
             <!-- Settings View -->
             <section id="settings" class="view-section">
+                <div class="card glass" style="max-width: 500px; margin: 0 auto; margin-bottom: 20px;">
+                    <h3>Sync Diagnostic</h3>
+                    <div style="font-size: 0.8rem; line-height: 1.6; background: rgba(0,0,0,0.05); padding: 15px; border-radius: 8px;">
+                        <div><strong>Email:</strong> <span id="diag-email">Loading...</span></div>
+                        <div><strong>User ID:</strong> <span id="diag-id" style="word-break: break-all; font-family: monospace;">Loading...</span></div>
+                        <div><strong>Saves in Cloud:</strong> <span id="diag-saves">Checking...</span></div>
+                        <button class="btn" onclick="window.peekCloud()" style="margin-top: 10px; padding: 5px 10px; font-size: 10px; background: #6366f1; color: white; border: none; border-radius: 4px;">PEEK AT CLOUD DATA</button>
+                    </div>
+                </div>
+
                 <div class="card glass" style="max-width: 500px; margin: 0 auto;">
-                    <h3>Rescue Tools</h3>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">If your data is missing, click below to force-restore the April backup.</p>
+                    <h3>Data Management</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Download a local copy of your data or restore from a backup.</p>
+                    <button class="btn btn-primary" onclick="window.downloadState()" style="width: 100%; margin-bottom: 10px; padding: 16px;">DOWNLOAD JSON BACKUP</button>
                     <button class="btn" onclick="window.forceRescueData()" style="width: 100%; background: #ef4444; color: white; padding: 16px;">RESCUE APRIL DATA (67 TX)</button>
                 </div>
             </section>
@@ -616,7 +617,6 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     
     <script>
-        alert("FinanceOS v202-OCR is loaded! If you see this, the app is updated.");
         // --- DATA & CONFIG ---
         const SUPABASE_URL = 'https://gqmqegrmydtqxfnzdpty.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_UHVHuIwKWVGuMGgqD-ti6A_mFMAxXr9';
@@ -692,10 +692,44 @@
         }
 
         async function loadData() {
-            const { data, error } = await dbClient.from('finance_storage').select('state').eq('user_id', currentUser.id).maybeSingle();
-            if (error) console.error(error);
+            let cloudData = null;
+            try {
+                // Fetch the MOST RECENT record for this user
+                const { data, error } = await dbClient
+                    .from('finance_storage')
+                    .select('state')
+                    .eq('user_id', currentUser.id)
+                    .order('updated_at', { ascending: false })
+                    .limit(1);
+
+                if (error) {
+                    console.error("[Cloud] Fetch error:", error);
+                    alert("Cloud Fetch Error: " + error.message);
+                } else if (data && data.length > 0) {
+                    cloudData = data[0];
+                    console.log("[Cloud] Loaded state with " + cloudData.state.transactionsState.length + " transactions.");
+                }
+
+                // Update Diagnostics UI
+                document.getElementById('diag-email').textContent = currentUser.email;
+                document.getElementById('diag-id').textContent = currentUser.id;
+                document.getElementById('diag-saves').textContent = data ? data.length : 0;
+            } catch (e) { console.error("[Cloud] Connection failed:", e); }
+
+            // Check Local Backup
+            let localBackup = null;
+            try {
+                const raw = localStorage.getItem(`financeOS_backup_${currentUser.id}`);
+                if (raw) localBackup = JSON.parse(raw);
+            } catch (e) {}
+
+            let state = (cloudData && cloudData.state) || localBackup || { transactionsState: [], monthlyBudgetsState: {}, investmentsState: [] };
             
-            let state = (data && data.state) || { transactionsState: [], monthlyBudgetsState: {}, investmentsState: [] };
+            // If local backup is newer/has more data, prefer it
+            if (localBackup && localBackup.transactionsState && (!cloudData || localBackup.transactionsState.length > cloudData.state.transactionsState.length)) {
+                console.log("[Data] Local backup is more comprehensive. Using it.");
+                state = localBackup;
+            }
             
             // --- IRONCLAD DATA HYDRATION ---
             const existingIds = new Set(state.transactionsState.map(tx => tx.id));
@@ -715,33 +749,75 @@
             if (isDefaultMay) {
                 state.monthlyBudgetsState['2026-05'] = JSON.parse(JSON.stringify(MAY_BUDGET_BACKUP));
                 addedBudget = true;
-                console.log("[Hydration] Forcing May Budget Backup (found default categories).");
             }
 
             transactionsState = state.transactionsState || [];
             monthlyBudgetsState = state.monthlyBudgetsState || {};
             investmentsState = state.investmentsState || [];
-
-            if (addedTx > 0 || addedBudget) {
-                console.log(`[Hydration] Injected ${addedTx} transactions and May budget.`);
-                saveData(true); // Silent save back to cloud
-            }
             
             refreshAllUI();
         }
 
         async function saveData(silent = false) {
-            if (!silent) showToast("Saving to cloud...", 1000);
             const state = { transactionsState, monthlyBudgetsState, investmentsState };
-            const { error } = await dbClient.from('finance_storage').upsert({ user_id: currentUser.id, state, updated_at: new Date() });
             
-            if (error) {
-                console.error("Save error:", error);
-                if (!silent) showToast("⚠️ Save failed! Please check connection.", 3000);
-            } else {
-                if (!silent) showToast("✅ Saved successfully", 1500);
+            // 1. Local Backup (Immediate)
+            localStorage.setItem(`financeOS_backup_${currentUser.id}`, JSON.stringify(state));
+
+            // 2. Cloud Sync
+            const indicator = document.getElementById('sync-indicator');
+            if (indicator) indicator.style.background = '#f59e0b'; // Yellow (Syncing)
+
+            try {
+                // Manual Upsert: Select first to find the record ID
+                const { data: existing, error: fetchError } = await dbClient
+                    .from('finance_storage')
+                    .select('id')
+                    .eq('user_id', currentUser.id)
+                    .maybeSingle();
+
+                let resultError = null;
+                if (existing && existing.id) {
+                    // Update existing
+                    const { error } = await dbClient
+                        .from('finance_storage')
+                        .update({ state, updated_at: new Date().toISOString() })
+                        .eq('id', existing.id);
+                    resultError = error;
+                } else {
+                    // Insert new
+                    const { error } = await dbClient
+                        .from('finance_storage')
+                        .insert({ user_id: currentUser.id, state, updated_at: new Date().toISOString() });
+                    resultError = error;
+                }
+                
+                if (resultError) {
+                    console.error("[Cloud] Save error:", resultError);
+                    if (indicator) indicator.style.background = '#ef4444'; // Red (Error)
+                    if (!silent) alert("Cloud Error: " + resultError.message);
+                    return false;
+                } else {
+                    if (indicator) indicator.style.background = '#10b981'; // Green (Success)
+                    return true;
+                }
+            } catch (err) {
+                console.error("[Cloud] Crash:", err);
+                if (indicator) indicator.style.background = '#ef4444';
+                return false;
             }
         }
+        
+        window.peekCloud = async () => {
+            if (!currentUser) return alert("Not logged in.");
+            const { data, error } = await dbClient.from('finance_storage').select('state').eq('user_id', currentUser.id).order('updated_at', { ascending: false }).limit(1);
+            if (error) return alert("Error fetching: " + error.message);
+            if (!data || data.length === 0) return alert("No cloud data found for this ID.");
+            
+            const txs = data[0].state.transactionsState || [];
+            const summary = txs.slice(0, 5).map(t => `${t.date}: ${t.merchant} (₩${t.amount})`).join('\n');
+            alert(`Found ${txs.length} transactions in Cloud.\n\nLatest 5:\n${summary || 'None'}`);
+        };
 
         function showToast(msg, duration = 2000) {
             const container = document.getElementById('toast-container');
@@ -775,6 +851,8 @@
         }
 
         function renderDashboard() {
+            document.getElementById('view-title').innerHTML = `Dashboard <span style="font-size: 0.7rem; background: var(--accent-primary); color:white; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Total: ${transactionsState.length}</span>`;
+            
             const monthTx = transactionsState.filter(tx => tx.date && tx.date.startsWith(currentMonthView));
             const spent = monthTx.reduce((sum, tx) => sum + (parseInt(tx.amount) || 0), 0);
             const budget = monthlyBudgetsState[currentMonthView] || budgetState;
@@ -921,23 +999,54 @@
         window.showAddTransactionModal = () => {
             const modal = document.getElementById('modal-tx-detail');
             const catSelect = document.getElementById('tx-category');
-            catSelect.innerHTML = budgetState.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            
+            // Fix: Use current month's categories if available
+            const budget = monthlyBudgetsState[currentMonthView] || budgetState;
+            catSelect.innerHTML = budget.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            
             document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('tx-merchant').value = '';
+            document.getElementById('tx-amount').value = '';
             modal.style.display = 'flex';
         };
 
-        window.saveTransactionFromModal = () => {
-            const merchant = document.getElementById('tx-merchant').value;
-            const amount = parseInt(document.getElementById('tx-amount').value.replace(/,/g, '')) || 0;
-            const category = document.getElementById('tx-category').value;
-            const date = document.getElementById('tx-date').value;
+        window.saveTransactionFromModal = async () => {
+            const merchantInput = document.getElementById('tx-merchant');
+            const amountInput = document.getElementById('tx-amount');
+            const categoryInput = document.getElementById('tx-category');
+            const dateInput = document.getElementById('tx-date');
 
-            if (!merchant || amount <= 0) return alert("Valid data please");
+            const merchant = merchantInput.value.trim();
+            const amount = parseInt(amountInput.value.replace(/,/g, '')) || 0;
+            const category = categoryInput.value;
+            const date = dateInput.value;
 
-            transactionsState.push({ id: Date.now(), merchant, amount, category, date });
-            saveData();
-            document.getElementById('modal-tx-detail').style.display = 'none';
-            refreshAllUI();
+            console.log("[Entry] Attempting to save transaction:", { merchant, amount, category, date });
+
+            if (!merchant) return alert("Please enter a merchant name.");
+            if (amount <= 0) return alert("Please enter a valid amount.");
+            if (!date) return alert("Please select a date.");
+
+            const newTx = { 
+                id: Date.now() + Math.random(), 
+                merchant, 
+                amount, 
+                category, 
+                date,
+                type: 'expense' 
+            };
+
+            transactionsState.push(newTx);
+            
+            const success = await saveData();
+            if (success) {
+                document.getElementById('modal-tx-detail').style.display = 'none';
+                refreshAllUI();
+            } else {
+                // Remove the failed transaction from local state so it doesn't get stuck
+                transactionsState.pop();
+                alert("Transaction could not be saved to the cloud. Please try again.");
+            }
         };
 
         window.updateLimit = (idx, val) => {
@@ -1121,10 +1230,19 @@
             resetOCR();
         };
 
-        window.triggerAppAction = (action) => {
+        window.triggerAppAction = (action, ...args) => {
+            console.log("Triggering action:", action, args);
             if (action === 'ocr_upload') {
                 switchView('budget');
                 document.getElementById('file-input').click();
+            } else if (action === 'add_entry') {
+                window.showAddTransactionModal();
+            } else if (action === 'toggle_theme') {
+                window.toggleTheme();
+            } else if (action === 'change_month') {
+                window.changeMonth(args[0]);
+            } else if (action === 'nav_to') {
+                switchView(args[0]);
             }
         };
 
